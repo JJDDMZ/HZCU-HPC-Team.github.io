@@ -1,6 +1,6 @@
 ---
 # Display name
-title: YUxiang Chen 陈宇翔
+title: Yuxiang Chen 陈宇翔
 
 # Full Name (for SEO)
 first_name: Yuxiang
