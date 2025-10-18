@@ -1,0 +1,67 @@
+---
+# Display name
+title: Sizhe Qiao 乔思喆
+
+# Full name (for SEO)
+first_name: Sizhe
+last_name: Qiao
+
+# Username (this should match the folder name)
+authors:
+  - 乔思喆
+
+# Is this the primary user of the site?
+superuser: false
+
+# Role/position
+role: Member of the HZCU High-Performance Computing Team
+
+
+# Organizations/Affiliations
+organizations:
+  - name: Hangzhou City University
+    url: 'https://www.hzcu.edu.cn/'
+
+# Short bio (displayed in user profile at end of posts)
+bio: My research interests include distributed robotics, mobile computing and programmable matter.
+
+interests:
+  - Photography
+  - Indie Game
+  - Music
+
+education:
+  courses:
+    - course: Software Engineering
+      institution: Hangzhou City University
+      year: 2025
+
+# Social/Academic Networking
+# For available icons, see: https://docs.hugoblox.com/getting-started/page-builder/#icons
+#   For an email link, use "fas" icon pack, "envelope" icon, and a link in the
+#   form "mailto:your-email@example.com" or "#contact" for contact widget.
+social:  
+  - icon: github
+    icon_pack: fab
+    link: https://github.com/JJDDMZ
+
+
+# Link to a PDF of your resume/CV from the About widget.
+# To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.
+# - icon: cv
+#   icon_pack: ai
+#   link: files/cv.pdf
+
+# Enter email to display Gravatar (if Gravatar enabled in Config)
+email: '2228018748@qq.com'
+
+# Organizational groups that you belong to (for People widget)
+#   Set this to `[]` or comment out if you are not using People widget.
+user_groups:
+  - Team members
+---
+世界一分为二
+
+Email：
+2228018748@qq.com
+
