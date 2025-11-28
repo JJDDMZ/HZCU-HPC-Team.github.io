@@ -1,10 +1,14 @@
 ---
 title: 披萨日
 date: 2025-11-28
+type: post
 authors: ["Sizhe"]
 tags: ["日常"]
 summary: 
+
 ---
+
+<!--more-->
 
 第一篇、开山之作。
 

@@ -33,6 +33,6 @@ main:
     weight: 60
     
 
-  - name: Our daily
+  - name: Diary
     url: /daily/
     weight: 70
