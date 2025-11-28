@@ -31,3 +31,8 @@ main:
   - name: Contact
     url: contact
     weight: 60
+    
+
+  - name: Our daily
+    url: /daily/
+    weight: 70
