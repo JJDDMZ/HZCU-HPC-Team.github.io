@@ -11,7 +11,7 @@ authors:
   - 鲍竹涵
 
 # Is this the primary user of the site?
-superuser: true
+superuser: false
 
 # Role/position
 role: Former Leader of the HZCU High-Performance Computing Team
@@ -24,9 +24,6 @@ organizations:
 # Short bio (displayed in user profile at end of posts)
 bio: Attention is all you need.
 
-interests:
-  - 🏸 Badminton
-
 education:
   courses:
     - course: Undergraduate in Software Engineering
@@ -38,15 +35,12 @@ education:
 #   For an email link, use "fas" icon pack, "envelope" icon, and a link in the
 #   form "mailto:your-email@example.com" or "#contact" for contact widget.
 social:
-  - icon: envelope
-    icon_pack: fas
-    link: 'mailto:hengyuhan3762@gmail.com'
   - icon: github
     icon_pack: fab
     link: https://BaoZhuhan.github.io/p/cv/
 
 # Enter email to display Gravatar (if Gravatar enabled in Config)
-email: 'hengyuhan3762@gmail.com'
+email: '32301227@stu.hzcu.edu.cn'
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
@@ -54,6 +48,8 @@ email: 'hengyuhan3762@gmail.com'
 user_groups:
   - Alumni
 ---
-I served as the **Captain of the Supercomputing Team** from 2025 to 2026 and stepped down in Spring 2026. 
+I served as the captain of the team from 2025 to 2026 and stepped down in Spring 2026. 
 
-To learn more about my work and research background, please visit my [ORCID Profile：Zhuhan Bao](https://orcid.org/0009-0004-6659-6596). I am always open to new connections and academic collaborations!
+To learn more about my work and research background, please visit my [ORCID Profile：Zhuhan Bao](https://orcid.org/0009-0004-6659-6596). 
+
+I am always open to new connections and academic collaborations!
