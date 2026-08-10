@@ -226,6 +226,59 @@ class GeneratedSiteTests(unittest.TestCase):
                 self.assertNotIn("<script>", summary)
                 self.assertLess(len(summary), 250)
 
+    def test_people_directory_preserves_groups_members_and_accessible_portraits(self):
+        import re
+
+        page = (self.output / "people/index.html").read_text(encoding="utf-8")
+        self.assertIn('class="editorial-people"', page)
+        self.assertIn('class="editorial-person"', page)
+        self.assertEqual(page.count("<main"), 1)
+        ids = re.findall(r'\bid="([^"]+)"', page)
+        self.assertEqual(len(ids), len(set(ids)))
+        directory = page.split('class="editorial-people"', 1)[1]
+        self.assertEqual(directory.count("<h1"), 1)
+        self.assertIn("Meet the Team", directory)
+
+        expected_groups = {
+            "Mentor": ("Rui Hu", "Kui Su 苏奎"),
+            "Team members": (
+                "Guobin Zhang 张国宾",
+                "Menglin Feng 冯梦琳",
+                "Sizhe Qiao 乔思喆",
+                "Xunuo Xie 谢许诺",
+                "Yanan Sheng 盛亚楠",
+                "Yuhan Guo",
+                "Yuxiang Chen",
+                "Binhao Gong 龚斌豪",
+                "Zheng Cai 蔡政",
+                "Jiawei Lin 林家为",
+                "Junchen Lv 吕俊辰",
+                "Wenjia Qu 屈文佳",
+            ),
+            "Alumni": ("Eason W 王绅懿", "Nuo Xu 许诺", "Zhuhan Bao 鲍竹涵", "Chengdong S 沈铖栋", "Lingkai Li 李凌凯"),
+        }
+        for group, members in expected_groups.items():
+            with self.subTest(group=group):
+                self.assertRegex(directory, rf"<h2[^>]*>{re.escape(group)}</h2>")
+                for member in members:
+                    self.assertIn(member, directory)
+
+        portraits = re.findall(r'<img[^>]*class="[^"]*editorial-person__portrait[^"]*"[^>]*>', directory)
+        self.assertTrue(portraits)
+        for portrait in portraits:
+            with self.subTest(portrait=portrait):
+                self.assertRegex(portrait, r'alt="Portrait of [^"]+"')
+                self.assertIn("srcset=", portrait)
+                self.assertIn("sizes=", portrait)
+
+    def test_people_avatar_template_avoids_raster_upscaling_and_preserves_passthrough(self):
+        template = (REPO_ROOT / "layouts/partials/blocks/people.html").read_text(encoding="utf-8")
+        self.assertIn('eq $avatar.MediaType.SubType "svg"', template)
+        self.assertIn('eq $avatar.MediaType.SubType "gif"', template)
+        self.assertIn("if le . $avatar.Width", template)
+        self.assertIn("srcset=", template)
+        self.assertIn("sizes=", template)
+
     def test_editorial_landmarks_and_hero_ids_are_unique(self):
         for route in ("/", "/post/", "/daily/"):
             with self.subTest(route=route):
