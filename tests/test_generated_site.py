@@ -1,3 +1,4 @@
+import base64
 import os
 import shutil
 import subprocess
@@ -14,6 +15,10 @@ REQUIRED_HOME_STRINGS = (
     "INTRODUCTION",
     "ACCOMPLISHMENTS",
     "Meet the team",
+)
+SVG_HERO = b'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 8"><rect width="12" height="8" fill="#b95232"/></svg>'''
+ANIMATED_GIF_HERO = base64.b64decode(
+    "R0lGODlhAQABAIAAAAAAAP///yH/C05FVFNDQVBFMi4wAwEAAAAh+QQACAAAACwAAAAAAQABAAACAkQBADs="
 )
 
 
@@ -115,6 +120,48 @@ class GeneratedSiteTests(unittest.TestCase):
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, self.homepage)
+
+    def test_svg_and_animated_gif_hero_assets_build_with_original_paths(self):
+        for extension, fixture_data in (("svg", SVG_HERO), ("gif", ANIMATED_GIF_HERO)):
+            with self.subTest(extension=extension):
+                fixture_root = tempfile.TemporaryDirectory()
+                self.addCleanup(fixture_root.cleanup)
+                fixture = Path(fixture_root.name) / "site"
+                shutil.copytree(
+                    REPO_ROOT,
+                    fixture,
+                    ignore=shutil.ignore_patterns(".git", "public", "resources", ".hugo_build.lock"),
+                )
+                image_name = f"hero.{extension}"
+                (fixture / "assets/media" / image_name).write_bytes(fixture_data)
+                homepage = fixture / "content/_index.md"
+                homepage.write_text(
+                    homepage.read_text(encoding="utf-8").replace("filename: banner.jpg", f"filename: {image_name}", 1),
+                    encoding="utf-8",
+                )
+                destination = Path(tempfile.mkdtemp())
+                self.addCleanup(shutil.rmtree, destination)
+                environment = os.environ.copy()
+                environment.update(
+                    {
+                        "PATH": f"{Path.home() / '.local/bin'}:{environment.get('PATH', '')}",
+                        "GOPROXY": "https://goproxy.cn",
+                        "GOSUMDB": "off",
+                        "GOMODCACHE": str(Path.home() / "go/pkg/mod"),
+                    }
+                )
+                environment.setdefault("HUGO_BIN", "hugo")
+                result = subprocess.run(
+                    [environment["HUGO_BIN"], "--destination", str(destination)],
+                    cwd=fixture,
+                    env=environment,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, 0, f"Hugo build failed:\n{result.stdout}\n{result.stderr}")
+                generated_homepage = (destination / "index.html").read_text(encoding="utf-8")
+                self.assertIn(f"hero.{extension}", generated_homepage)
+                self.assertNotIn("srcset=", generated_homepage)
 
     def test_warm_editorial_design_tokens_compile(self):
         css = "\n".join(

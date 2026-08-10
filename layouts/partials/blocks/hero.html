@@ -4,7 +4,7 @@
 {{ $title := $block.content.title | default $block.Title }}
 {{ $image := resources.Get (path.Join "media" $block.content.image.filename) }}
 
-<section id="{{ .wcIdentifier }}" class="editorial-hero" aria-label="{{ $title | plainify }}" aria-labelledby="{{ .wcIdentifier }}-title">
+<section id="{{ .wcIdentifier }}" class="editorial-hero" aria-labelledby="{{ .wcIdentifier }}-title">
   <div class="editorial-hero__copy">
     {{ with $title }}
       <h1 id="{{ $.wcIdentifier }}-title">{{ . | markdownify }}</h1>
@@ -14,9 +14,9 @@
     {{ end }}
   </div>
   {{ with $image }}
-    {{ if eq .MediaType.SubType "svg" }}
+    {{ if or (eq .MediaType.SubType "svg") (eq .MediaType.SubType "gif") }}
       <div class="editorial-hero__media">
-        <img src="{{ .RelPermalink }}" width="{{ .Width }}" height="{{ .Height }}" alt="{{ $title | plainify }}">
+        <img src="{{ .RelPermalink }}" alt="{{ $title | plainify }}">
       </div>
     {{ else }}
       {{ $widths := slice 1600 1200 800 400 }}
