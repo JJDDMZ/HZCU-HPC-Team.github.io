@@ -83,6 +83,15 @@ class GeneratedSiteTests(unittest.TestCase):
             encoding="utf-8",
         )
         (fixture / "layouts/_default/single.html").write_text('{{ define "main" }}{{ .Title }}{{ end }}', encoding="utf-8")
+        small_post_dir = fixture / "content/post/editorial-small"
+        small_post_dir.mkdir(parents=True)
+        shutil.copy(fixture / "assets/media/icon.png", small_post_dir / "featured.png")
+        (small_post_dir / "index.md").write_text(
+            "---\ntitle: Editorial small\ndate: 2026-01-01\nimage:\n  path: featured.png\n---\nFixture entry.",
+            encoding="utf-8",
+        )
+        homepage = fixture / "content/_index.md"
+        homepage.write_text(homepage.read_text(encoding="utf-8").replace("filename: banner.jpg", "filename: icon.png", 1), encoding="utf-8")
         for extension, fixture_data in (("svg", SVG_HERO), ("gif", ANIMATED_GIF_HERO)):
             post_dir = fixture / f"content/post/editorial-{extension}"
             post_dir.mkdir(parents=True)
@@ -226,11 +235,39 @@ class GeneratedSiteTests(unittest.TestCase):
                 ids = __import__("re").findall(r'\\bid="([^"]+)"', page)
                 self.assertEqual(len(ids), len(set(ids)))
 
-    def test_editorial_text_links_use_contrast_safe_clay(self):
+    def test_small_raster_candidates_do_not_upscale(self):
+        homepage = (self.fixture_output / "index.html").read_text(encoding="utf-8")
+        hero = homepage.split('class="editorial-hero__media"', 1)[1].split("</div>", 1)[0]
+        hero_widths = [int(width) for width in __import__("re").findall(r"\s(\d+)w", hero)]
+        self.assertTrue(hero_widths)
+        self.assertTrue(all(width <= 512 for width in hero_widths))
+        listing = (self.fixture_output / "post/index.html").read_text(encoding="utf-8")
+        entry = listing.split("Editorial small", 1)[1].split("</article>", 1)[0]
+        widths = [int(width) for width in __import__("re").findall(r"\s(\d+)w", entry)]
+        self.assertTrue(widths)
+        self.assertTrue(all(width <= 512 for width in widths))
+
+    def test_text_link_colors_meet_wcag_contrast(self):
+        import re
+
+        def rgb(hex_color):
+            return tuple(int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5))
+
+        def luminance(hex_color):
+            channels = [value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4 for value in rgb(hex_color)]
+            return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+        def contrast(foreground, background):
+            light, dark = sorted((luminance(foreground), luminance(background)), reverse=True)
+            return (light + 0.05) / (dark + 0.05)
+
         tokens = (REPO_ROOT / "assets/scss/abstracts/_tokens.scss").read_text(encoding="utf-8")
+        typography = (REPO_ROOT / "assets/scss/base/_typography.scss").read_text(encoding="utf-8")
         entries = (REPO_ROOT / "assets/scss/components/_entries.scss").read_text(encoding="utf-8")
-        self.assertIn("--color-clay-dark: #8e3922", tokens)
+        colors = dict(re.findall(r"--(color-(?:paper|clay-dark)): (#[0-9a-f]{6})", tokens))
+        self.assertIn("color: var(--color-clay-dark)", typography)
         self.assertIn("color: var(--color-clay-dark)", entries)
+        self.assertGreaterEqual(contrast(colors["color-clay-dark"], colors["color-paper"]), 4.5)
 
     def test_editorial_sections_use_unified_index_and_entry_views(self):
         for route in ("post", "daily", "recruitment", "memory"):
