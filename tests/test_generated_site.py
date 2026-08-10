@@ -180,12 +180,20 @@ class GeneratedSiteTests(unittest.TestCase):
     def test_editorial_entries_support_text_fallback_and_image_accessibility(self):
         diary = (self.output / "daily" / "index.html").read_text(encoding="utf-8")
         self.assertIn('class="editorial-entry text-only"', diary)
+        self.assertIn("Sizhe", diary)
         self.assertNotIn('src=""', diary)
         self.assertNotIn("featured-image-placeholder", diary)
         post = (self.output / "post" / "index.html").read_text(encoding="utf-8")
         self.assertRegex(post, r'class="editorial-entry[^\"]*with-image')
         self.assertIn("srcset=", post)
         self.assertIn("aria-label=\"Read", post)
+
+    def test_homepage_recruitment_summary_is_a_concise_safe_excerpt(self):
+        entry = self.homepage.split('浙大城市学院超算队2025年招新', 1)[1].split('</article>', 1)[0]
+        summary = entry.split('class="editorial-entry__summary"', 1)[1].split('</div>', 1)[0]
+        self.assertNotIn("<h2", summary)
+        self.assertNotIn("<h3", summary)
+        self.assertLess(len(summary), 500)
 
     def test_editorial_entries_keep_external_link_security_and_metadata(self):
         fixture = (self.fixture_output / "recruitment" / "index.html").read_text(encoding="utf-8")

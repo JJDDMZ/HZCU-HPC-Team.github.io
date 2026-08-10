@@ -11,16 +11,15 @@
 {{- else with $item.Params.abstract -}}
   {{- $summary = . | markdownify | emojify -}}
 {{- else with $item.Summary -}}
-  {{- $summary = . -}}
+  {{- $summary = . | plainify | htmlUnescape | truncate (site.Params.summaryLength | default 180) -}}
 {{- end -}}
 {{- $featured := partial "blox-core/functions/get_featured_image.html" $item -}}
 {{- $attachment := partial "functions/has_attachments" $item -}}
 <article class="editorial-entry{{ with $featured }} with-image{{ else }} text-only{{ end }}">
   <div class="editorial-entry__body">
-    <p class="editorial-entry__metadata">
-      {{- with $item.Date }}<time datetime="{{ .Format "2006-01-02" }}">{{ .Format "January 2, 2006" }}</time>{{ end -}}
-      {{- with $item.Params.tags }}{{ if $item.Date }}<span aria-hidden="true"> · </span>{{ end }}{{ delimit . ", " }}{{ end -}}
-    </p>
+    <div class="editorial-entry__metadata">
+      {{ partial "page_metadata" (dict "page" $item "is_list" 1) }}
+    </div>
     <h2 class="editorial-entry__title"><a href="{{ $link }}" {{ $target | safeHTMLAttr }}>{{ $item.Title }}</a></h2>
     {{- with $summary }}<div class="editorial-entry__summary">{{ . }}</div>{{ end -}}
     {{- if $attachment }}<div class="editorial-entry__attachments">{{ partial "page_links" (dict "page" $item "is_list" 1) }}</div>{{ end -}}
