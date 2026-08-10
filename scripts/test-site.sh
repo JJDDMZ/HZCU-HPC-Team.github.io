@@ -2,7 +2,7 @@
 set -euo pipefail
 
 export PATH="$HOME/.local/bin:$PATH"
-export HUGO_BIN="${HUGO_BIN:-$HOME/.local/bin/hugo}"
+export HUGO_BIN="${HUGO_BIN:-hugo}"
 export GOPROXY="https://goproxy.cn"
 export GOSUMDB="off"
 export GOMODCACHE="$HOME/go/pkg/mod"

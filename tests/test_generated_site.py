@@ -20,6 +20,7 @@ class GeneratedSiteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.destination = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.destination.cleanup)
         environment = os.environ.copy()
         environment.update(
             {
@@ -29,25 +30,21 @@ class GeneratedSiteTests(unittest.TestCase):
                 "GOMODCACHE": str(Path.home() / "go/pkg/mod"),
             }
         )
+        environment.setdefault("HUGO_BIN", "hugo")
         result = subprocess.run(
-            [environment.get("HUGO_BIN", str(Path.home() / ".local/bin/hugo")), "--destination", cls.destination.name],
+            [environment["HUGO_BIN"], "--destination", cls.destination.name],
             cwd=REPO_ROOT,
             env=environment,
             capture_output=True,
             text=True,
         )
         if result.returncode:
-            cls.destination.cleanup()
             raise RuntimeError(
                 f"Hugo build failed with exit code {result.returncode}:\n"
                 f"{result.stdout}\n{result.stderr}"
             )
         cls.output = Path(cls.destination.name)
         cls.homepage = (cls.output / "index.html").read_text(encoding="utf-8")
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.destination.cleanup()
 
     def test_required_routes_are_generated(self):
         for route in REQUIRED_ROUTES:
