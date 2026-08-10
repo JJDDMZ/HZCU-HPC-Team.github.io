@@ -35,7 +35,7 @@
             {{ $link := "" }}
             {{ with site.GetPage (printf "/authors/%s" (path.Base $person.File.Dir)) }}{{ $link = .RelPermalink }}{{ end }}
             <article class="editorial-person">
-              {{ if site.Params.features.avatar.gravatar }}
+              {{ if and site.Params.features.avatar.gravatar $person.Params.email }}
                 {{ $gravatar := printf "https://s.gravatar.com/avatar/%s?s=540" (md5 $person.Params.email) }}
                 <img class="editorial-person__portrait avatar {{ if eq (site.Params.features.avatar.shape | default "circle") "square" }}avatar-square{{ else }}avatar-circle{{ end }}" src="{{ $gravatar }}" width="270" height="270" loading="lazy" alt="Portrait of {{ $person.Title | plainify }}">
               {{ else if $avatar }}
@@ -59,7 +59,21 @@
                 <h3>{{ with $link }}<a href="{{ . }}">{{ end }}{{ $person.Title }}{{ if $link }}</a>{{ end }}</h3>
                 {{ if and $show_organizations $person.Params.organizations }}{{ range $person.Params.organizations }}<p class="editorial-person__organization">{{ .name }}</p>{{ end }}{{ end }}
                 {{ if and $show_role $person.Params.role }}<p class="editorial-person__role">{{ $person.Params.role | markdownify | emojify }}</p>{{ end }}
-                {{ if $show_social }}{{ partial "social_links" $person }}{{ end }}
+                {{ if $show_social }}
+                  {{ with $person.Params.social }}
+                    <ul class="network-icon editorial-person__social" aria-label="Social links for {{ $person.Title | plainify }}">
+                      {{ range . }}
+                        {{ $link := .link }}
+                        {{ $scheme := (urls.Parse $link).Scheme }}
+                        {{ $target := "" }}
+                        {{ if not $scheme }}{{ $link = .link | relLangURL }}{{ else if in (slice "http" "https") $scheme }}{{ $target = "target=\"_blank\" rel=\"noopener\"" }}{{ end }}
+                        {{ $pack := or .icon_pack "fas" }}
+                        {{ $pack_prefix := cond (in (slice "fab" "fas" "far" "fal") $pack) "fa" $pack }}
+                        <li><a href="{{ $link | safeURL }}" aria-label="{{ .icon | humanize }} for {{ $person.Title | plainify }}" title="{{ .icon | humanize }}" {{ $target | safeHTMLAttr }}><i class="{{ $pack }} {{ $pack_prefix }}-{{ .icon }}" aria-hidden="true"></i></a></li>
+                      {{ end }}
+                    </ul>
+                  {{ end }}
+                {{ end }}
                 {{ if and $show_interests $person.Params.interests }}<p class="editorial-person__interests">{{ delimit $person.Params.interests ", " | markdownify | emojify }}</p>{{ end }}
               </div>
             </article>

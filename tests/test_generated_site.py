@@ -32,6 +32,8 @@ class GeneratedSiteTests(unittest.TestCase):
         fixture = Path(cls.fixture_root.name) / "site"
         shutil.copytree(REPO_ROOT, fixture, ignore=shutil.ignore_patterns(".git", "public", "resources", ".hugo_build.lock"))
         cls.fixture_menus = fixture / "config/_default/menus.yaml"
+        fixture_params = fixture / "config/_default/params.yaml"
+        fixture_params.write_text(fixture_params.read_text(encoding="utf-8").replace("gravatar: false", "gravatar: true"), encoding="utf-8")
         cls.fixture_menus.write_text(
             cls.fixture_menus.read_text(encoding="utf-8")
             + """
@@ -273,11 +275,28 @@ class GeneratedSiteTests(unittest.TestCase):
 
     def test_people_avatar_template_avoids_raster_upscaling_and_preserves_passthrough(self):
         template = (REPO_ROOT / "layouts/partials/blocks/people.html").read_text(encoding="utf-8")
+        self.assertIn('and site.Params.features.avatar.gravatar $person.Params.email', template)
         self.assertIn('eq $avatar.MediaType.SubType "svg"', template)
         self.assertIn('eq $avatar.MediaType.SubType "gif"', template)
         self.assertIn("if le . $avatar.Width", template)
         self.assertIn("srcset=", template)
         self.assertIn("sizes=", template)
+
+    def test_people_social_links_are_accessible(self):
+        import re
+
+        page = (self.output / "people/index.html").read_text(encoding="utf-8")
+        social = re.findall(r'<ul class="network-icon editorial-person__social"[^>]*>.*?</ul>', page, re.S)
+        self.assertTrue(social)
+        for links in social:
+            self.assertNotRegex(links.split(">", 1)[0], r'aria-hidden')
+            self.assertRegex(links, r'<a[^>]+aria-label="[^"]+"[^>]+title="[^"]+"')
+
+    def test_gravatar_enabled_falls_back_for_empty_email_and_hashes_nonempty_email(self):
+        page = (self.fixture_output / "people/index.html").read_text(encoding="utf-8")
+        self.assertIn("/author/binhao-gong", page)
+        self.assertNotIn("s.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e", page)
+        self.assertIn("s.gravatar.com/avatar/", page)
 
     def test_editorial_landmarks_and_hero_ids_are_unique(self):
         for route in ("/", "/post/", "/daily/"):
