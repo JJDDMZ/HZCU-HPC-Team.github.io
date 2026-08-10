@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -21,6 +22,52 @@ class GeneratedSiteTests(unittest.TestCase):
     def setUpClass(cls):
         cls.destination = tempfile.TemporaryDirectory()
         cls.addClassCleanup(cls.destination.cleanup)
+        cls.fixture_root = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.fixture_root.cleanup)
+        fixture = Path(cls.fixture_root.name) / "site"
+        shutil.copytree(REPO_ROOT, fixture, ignore=shutil.ignore_patterns(".git", "public", "resources", ".hugo_build.lock"))
+        cls.fixture_menus = fixture / "config/_default/menus.yaml"
+        cls.fixture_menus.write_text(
+            cls.fixture_menus.read_text(encoding="utf-8")
+            + """
+  - name: Resources
+    identifier: resources
+    url: resources
+    weight: 80
+  - name: Exact child
+    parent: resources
+    url: post/2025-06-03-ASC2024-prize/
+    weight: 10
+  - name: Descendant child
+    parent: resources
+    url: post
+    weight: 20
+  - name: Empty child
+    parent: resources
+    url: ""
+    weight: 30
+  - name: External child
+    parent: resources
+    url: https://example.com
+    weight: 40
+""",
+            encoding="utf-8",
+        )
+        cls.fixture_output = Path(tempfile.mkdtemp())
+        cls.addClassCleanup(shutil.rmtree, cls.fixture_output)
+        fixture_environment = environment = os.environ.copy()
+        fixture_environment.update({"PATH": f"{Path.home() / '.local/bin'}:{fixture_environment.get('PATH', '')}", "GOPROXY": "https://goproxy.cn", "GOSUMDB": "off", "GOMODCACHE": str(Path.home() / "go/pkg/mod")})
+        fixture_environment.setdefault("HUGO_BIN", "hugo")
+        fixture_result = subprocess.run(
+            [fixture_environment["HUGO_BIN"], "--destination", str(cls.fixture_output)],
+            cwd=fixture,
+            env=fixture_environment,
+            capture_output=True,
+            text=True,
+        )
+        if fixture_result.returncode:
+            raise RuntimeError(f"Hugo fixture build failed with exit code {fixture_result.returncode}:\n{fixture_result.stdout}\n{fixture_result.stderr}")
+        cls.fixture_article = (cls.fixture_output / "post/2025-06-03-ASC2024-prize/index.html").read_text(encoding="utf-8")
         environment = os.environ.copy()
         environment.update(
             {
@@ -112,11 +159,14 @@ class GeneratedSiteTests(unittest.TestCase):
             r'<a class="editorial-menu-link is-active" href="/post" aria-current="location">\s*<span>Post</span>',
         )
 
-    def test_dropdown_active_state_logic_is_present(self):
-        header_template = (REPO_ROOT / "layouts/partials/components/headers/editorial.html").read_text(encoding="utf-8")
-        self.assertIn('$current_page.HasMenuCurrent "main" .', header_template)
-        self.assertIn('aria-current="location"', header_template)
-        self.assertIn('$child_current', header_template)
+    def test_fixture_dropdown_states_and_external_links_are_generated(self):
+        page = self.fixture_article
+        self.assertIn('class="editorial-menu-details is-active"', page)
+        self.assertIn('<summary aria-current="location">', page)
+        self.assertRegex(page, r'<a class="is-active" href="/post/2025-06-03-ASC2024-prize/" aria-current="page">')
+        self.assertRegex(page, r'<a class="is-active" href="/post" aria-current="location">')
+        self.assertRegex(page, r'<a class="" href="https://example.com" target="_blank" rel="noopener">')
+        self.assertNotRegex(page, r'<a class="is-active" href="/"')
 
     def test_dark_theme_is_not_emitted(self):
         self.assertNotIn("theme-dropdown", self.homepage)

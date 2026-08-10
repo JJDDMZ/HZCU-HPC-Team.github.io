@@ -111,6 +111,15 @@
   display: none;
 }
 
+.editorial-menu-details.is-active summary,
+.editorial-menu-details.is-active .editorial-submenu a.is-active {
+  color: var(--color-clay-dark);
+}
+
+.editorial-menu-details.is-active summary {
+  font-weight: 700;
+}
+
 .editorial-submenu {
   position: absolute;
   z-index: var(--z-menu);

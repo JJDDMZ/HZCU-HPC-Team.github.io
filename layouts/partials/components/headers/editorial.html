@@ -27,7 +27,7 @@
               {{ if and $is_external (not $target) }}{{ $target = "_blank" }}{{ end }}
               {{ if and $is_external (not $rel) }}{{ $rel = "noopener" }}{{ end }}
               {{ $menu_path := (.URL | relLangURL | strings.TrimSuffix "/") }}
-              {{ $current_path := ($current_page.RelPermalink | strings.TrimSuffix "/") }}
+              {{ $current_path := lower ($current_page.RelPermalink | strings.TrimSuffix "/") }}
               {{ $is_exact_current := and (not $is_external) (eq $current_path $menu_path) }}
               {{ $is_section_current := and (not $is_external) (ne $menu_path "") (hasPrefix $current_path (printf "%s/" $menu_path)) }}
               {{ $is_current := or ($current_page.IsMenuCurrent "main" .) ($current_page.HasMenuCurrent "main" .) $is_exact_current $is_section_current }}
@@ -36,8 +36,8 @@
                   {{ $child_current := false }}
                   {{ range .Children }}
                     {{ $child_external := hasPrefix .URL "http" }}
-                    {{ $child_path := (.URL | relLangURL | strings.TrimSuffix "/") }}
-                    {{ if and (not $child_external) (or (eq $current_path $child_path) (hasPrefix $current_path (printf "%s/" $child_path))) }}
+                    {{ $child_path := lower (.URL | relLangURL | strings.TrimSuffix "/") }}
+                    {{ if and (ne .URL "") (not $child_external) (or (eq $current_path $child_path) (hasPrefix $current_path (printf "%s/" $child_path))) }}
                       {{ $child_current = true }}
                     {{ end }}
                   {{ end }}
@@ -46,9 +46,9 @@
                     <ul class="editorial-submenu">
                       {{ range .Children }}
                         {{ $child_external := hasPrefix .URL "http" }}
-                        {{ $child_path := (.URL | relLangURL | strings.TrimSuffix "/") }}
-                        {{ $child_exact_current := and (not $child_external) (eq $current_path $child_path) }}
-                        {{ $child_location_current := and (not $child_external) (hasPrefix $current_path (printf "%s/" $child_path)) }}
+                        {{ $child_path := lower (.URL | relLangURL | strings.TrimSuffix "/") }}
+                        {{ $child_exact_current := and (ne .URL "") (not $child_external) (eq $current_path $child_path) }}
+                        {{ $child_location_current := and (ne .URL "") (not $child_external) (hasPrefix $current_path (printf "%s/" $child_path)) }}
                         {{ $child_target := .Params.target }}
                         {{ $child_rel := .Params.rel }}
                         {{ if and $child_external (not $child_target) }}{{ $child_target = "_blank" }}{{ end }}
