@@ -30,7 +30,7 @@ class GeneratedSiteTests(unittest.TestCase):
             }
         )
         result = subprocess.run(
-            ["hugo", "--destination", cls.destination.name],
+            [environment.get("HUGO_BIN", str(Path.home() / ".local/bin/hugo")), "--destination", cls.destination.name],
             cwd=REPO_ROOT,
             env=environment,
             capture_output=True,
