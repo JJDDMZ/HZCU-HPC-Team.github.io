@@ -1,0 +1,61 @@
+{{ $show_navbar := ((site.Params.header.navbar.enable | default true) | and (ne .Params.header.navbar.enable false)) | or .Params.header.navbar.enable }}
+{{ if $show_navbar }}
+  {{ $current_page := . }}
+  {{ $highlight_active_link := site.Params.header.navbar.highlight_active_link | default true }}
+  {{ $show_search := site.Params.header.navbar.show_search | default true }}
+  {{ $align_menu := site.Params.header.navbar.align | default "l" }}
+
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="editorial-header">
+    <nav class="editorial-nav" aria-label="Primary navigation">
+      <div class="editorial-nav-container">
+        <a class="editorial-brand" href="{{ site.Home.RelPermalink }}">{{ site.Title }}</a>
+
+        {{ if site.Menus.main }}
+          <button class="editorial-menu-toggle navbar-toggler" type="button" data-toggle="collapse" data-target="#editorial-menu" aria-controls="editorial-menu" aria-expanded="false" aria-label="{{ i18n "toggle_navigation" | default "Toggle navigation" }}">
+            <span></span>
+            <span></span>
+          </button>
+        {{ end }}
+
+        <div class="editorial-menu collapse{{ if eq $align_menu "r" }} editorial-menu-right{{ else if eq $align_menu "c" }} editorial-menu-center{{ end }}" id="editorial-menu">
+          <ul class="editorial-menu-list">
+            {{ range site.Menus.main }}
+              {{ $is_external := hasPrefix .URL "http" }}
+              {{ $target := .Params.target }}
+              {{ $rel := .Params.rel }}
+              {{ if and $is_external (not $target) }}{{ $target = "_blank" }}{{ end }}
+              {{ if and $is_external (not $rel) }}{{ $rel = "noopener" }}{{ end }}
+              {{ $is_current := or ($current_page.IsMenuCurrent "main" .) ($current_page.HasMenuCurrent "main" .) }}
+              {{ if and (not $is_current) (not $is_external) (ne .URL "") }}
+                {{ $is_current = eq ($current_page.RelPermalink | strings.TrimSuffix "/") ((.URL | relLangURL) | strings.TrimSuffix "/") }}
+              {{ end }}
+              <li class="editorial-menu-item{{ if .HasChildren }} editorial-menu-item-has-children{{ end }}">
+                {{ if .HasChildren }}
+                  <details class="editorial-menu-details">
+                    <summary>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</summary>
+                    <ul class="editorial-submenu">
+                      {{ range .Children }}
+                        {{ $child_external := hasPrefix .URL "http" }}
+                        {{ $child_target := .Params.target }}
+                        {{ $child_rel := .Params.rel }}
+                        {{ if and $child_external (not $child_target) }}{{ $child_target = "_blank" }}{{ end }}
+                        {{ if and $child_external (not $child_rel) }}{{ $child_rel = "noopener" }}{{ end }}
+                        <li><a href="{{ if $child_external }}{{ .URL }}{{ else }}{{ .URL | relLangURL }}{{ end }}"{{ with $child_target }} target="{{ . }}"{{ end }}{{ with $child_rel }} rel="{{ . }}"{{ end }}>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</a></li>
+                      {{ end }}
+                    </ul>
+                  </details>
+                {{ else }}
+                  <a class="editorial-menu-link{{ if and $highlight_active_link $is_current }} is-active{{ end }}" href="{{ if $is_external }}{{ .URL }}{{ else }}{{ .URL | relLangURL }}{{ end }}"{{ if and $highlight_active_link $is_current }} aria-current="page"{{ end }}{{ with $target }} target="{{ . }}"{{ end }}{{ with $rel }} rel="{{ . }}"{{ end }}>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</a>
+                {{ end }}
+              </li>
+            {{ end }}
+          </ul>
+          {{ if and site.Params.features.search.provider $show_search }}
+            <a class="editorial-search js-search" href="#search" aria-label="{{ i18n "search" | default "Search" }}"><i class="fas fa-search" aria-hidden="true"></i><span class="sr-only">{{ i18n "search" | default "Search" }}</span></a>
+          {{ end }}
+        </div>
+      </div>
+    </nav>
+  </header>
+{{ end }}

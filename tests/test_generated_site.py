@@ -73,6 +73,21 @@ class GeneratedSiteTests(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertIn(token, normalized_css)
 
+    def test_editorial_navigation_and_footer_are_emitted(self):
+        for expected in (
+            'class="skip-link"',
+            "editorial-header",
+            'aria-label="Primary navigation"',
+            "editorial-footer-grid",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, self.homepage)
+
+    def test_mobile_navigation_is_accessible(self):
+        self.assertIn('aria-controls="editorial-menu"', self.homepage)
+        self.assertIn('aria-expanded="false"', self.homepage)
+        self.assertRegex(self.homepage, r'<button[^>]+aria-label="[^"]+"')
+
     def test_dark_theme_is_not_emitted(self):
         self.assertNotIn("theme-dropdown", self.homepage)
 
