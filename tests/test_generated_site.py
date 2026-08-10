@@ -73,6 +73,15 @@ class GeneratedSiteTests(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertIn(token, normalized_css)
 
+    def test_editorial_menu_overrides_bootstrap_collapse_on_desktop(self):
+        css = "".join(
+            stylesheet.read_text(encoding="utf-8")
+            for stylesheet in self.output.rglob("*.css")
+        )
+        normalized_css = "".join(css.split())
+        self.assertIn("@media(min-width:992px){.editorial-menu.collapse{display:flex}", normalized_css)
+        self.assertIn(".editorial-menu.collapse:not(.show){display:none}", normalized_css)
+
     def test_skip_link_target_exists_on_every_generated_page(self):
         for route in REQUIRED_ROUTES:
             output_path = self.output / route.strip("/") / "index.html" if route != "/" else self.output / "index.html"
@@ -94,6 +103,20 @@ class GeneratedSiteTests(unittest.TestCase):
         self.assertIn('aria-controls="editorial-menu"', self.homepage)
         self.assertIn('aria-expanded="false"', self.homepage)
         self.assertRegex(self.homepage, r'<button[^>]+aria-label="[^"]+"')
+
+    def test_descendant_page_marks_its_menu_section_as_current_location(self):
+        article = self.output / "post" / "2025-06-03-ASC2024-prize" / "index.html"
+        page = article.read_text(encoding="utf-8")
+        self.assertRegex(
+            page,
+            r'<a class="editorial-menu-link is-active" href="/post" aria-current="location">\s*<span>Post</span>',
+        )
+
+    def test_dropdown_active_state_logic_is_present(self):
+        header_template = (REPO_ROOT / "layouts/partials/components/headers/editorial.html").read_text(encoding="utf-8")
+        self.assertIn('$current_page.HasMenuCurrent "main" .', header_template)
+        self.assertIn('aria-current="location"', header_template)
+        self.assertIn('$child_current', header_template)
 
     def test_dark_theme_is_not_emitted(self):
         self.assertNotIn("theme-dropdown", self.homepage)

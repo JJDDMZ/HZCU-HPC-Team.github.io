@@ -26,27 +26,39 @@
               {{ $rel := .Params.rel }}
               {{ if and $is_external (not $target) }}{{ $target = "_blank" }}{{ end }}
               {{ if and $is_external (not $rel) }}{{ $rel = "noopener" }}{{ end }}
-              {{ $is_current := or ($current_page.IsMenuCurrent "main" .) ($current_page.HasMenuCurrent "main" .) }}
-              {{ if and (not $is_current) (not $is_external) (ne .URL "") }}
-                {{ $is_current = eq ($current_page.RelPermalink | strings.TrimSuffix "/") ((.URL | relLangURL) | strings.TrimSuffix "/") }}
-              {{ end }}
+              {{ $menu_path := (.URL | relLangURL | strings.TrimSuffix "/") }}
+              {{ $current_path := ($current_page.RelPermalink | strings.TrimSuffix "/") }}
+              {{ $is_exact_current := and (not $is_external) (eq $current_path $menu_path) }}
+              {{ $is_section_current := and (not $is_external) (ne $menu_path "") (hasPrefix $current_path (printf "%s/" $menu_path)) }}
+              {{ $is_current := or ($current_page.IsMenuCurrent "main" .) ($current_page.HasMenuCurrent "main" .) $is_exact_current $is_section_current }}
               <li class="editorial-menu-item{{ if .HasChildren }} editorial-menu-item-has-children{{ end }}">
                 {{ if .HasChildren }}
-                  <details class="editorial-menu-details">
-                    <summary>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</summary>
+                  {{ $child_current := false }}
+                  {{ range .Children }}
+                    {{ $child_external := hasPrefix .URL "http" }}
+                    {{ $child_path := (.URL | relLangURL | strings.TrimSuffix "/") }}
+                    {{ if and (not $child_external) (or (eq $current_path $child_path) (hasPrefix $current_path (printf "%s/" $child_path))) }}
+                      {{ $child_current = true }}
+                    {{ end }}
+                  {{ end }}
+                  <details class="editorial-menu-details{{ if $child_current }} is-active{{ end }}">
+                    <summary{{ if $child_current }} aria-current="location"{{ end }}>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</summary>
                     <ul class="editorial-submenu">
                       {{ range .Children }}
                         {{ $child_external := hasPrefix .URL "http" }}
+                        {{ $child_path := (.URL | relLangURL | strings.TrimSuffix "/") }}
+                        {{ $child_exact_current := and (not $child_external) (eq $current_path $child_path) }}
+                        {{ $child_location_current := and (not $child_external) (hasPrefix $current_path (printf "%s/" $child_path)) }}
                         {{ $child_target := .Params.target }}
                         {{ $child_rel := .Params.rel }}
                         {{ if and $child_external (not $child_target) }}{{ $child_target = "_blank" }}{{ end }}
                         {{ if and $child_external (not $child_rel) }}{{ $child_rel = "noopener" }}{{ end }}
-                        <li><a href="{{ if $child_external }}{{ .URL }}{{ else }}{{ .URL | relLangURL }}{{ end }}"{{ with $child_target }} target="{{ . }}"{{ end }}{{ with $child_rel }} rel="{{ . }}"{{ end }}>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</a></li>
+                        <li><a class="{{ if or $child_exact_current $child_location_current }}is-active{{ end }}" href="{{ if $child_external }}{{ .URL }}{{ else }}{{ .URL | relLangURL }}{{ end }}"{{ if $child_exact_current }} aria-current="page"{{ else if $child_location_current }} aria-current="location"{{ end }}{{ with $child_target }} target="{{ . }}"{{ end }}{{ with $child_rel }} rel="{{ . }}"{{ end }}>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</a></li>
                       {{ end }}
                     </ul>
                   </details>
                 {{ else }}
-                  <a class="editorial-menu-link{{ if and $highlight_active_link $is_current }} is-active{{ end }}" href="{{ if $is_external }}{{ .URL }}{{ else }}{{ .URL | relLangURL }}{{ end }}"{{ if and $highlight_active_link $is_current }} aria-current="page"{{ end }}{{ with $target }} target="{{ . }}"{{ end }}{{ with $rel }} rel="{{ . }}"{{ end }}>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</a>
+                  <a class="editorial-menu-link{{ if and $highlight_active_link $is_current }} is-active{{ end }}" href="{{ if $is_external }}{{ .URL }}{{ else }}{{ .URL | relLangURL }}{{ end }}"{{ if and $highlight_active_link $is_current }} aria-current="{{ if $is_exact_current }}page{{ else }}location{{ end }}"{{ end }}{{ with $target }} target="{{ . }}"{{ end }}{{ with $rel }} rel="{{ . }}"{{ end }}>{{ .Pre }}<span>{{ .Name | safeHTML }}</span>{{ .Post }}</a>
                 {{ end }}
               </li>
             {{ end }}
