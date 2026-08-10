@@ -1,0 +1,38 @@
+html {
+  background: var(--color-paper);
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+hr {
+  height: 1px;
+  margin: var(--space-7) 0;
+  border: 0;
+  background: var(--color-line);
+}
+
+.container,
+.universal-wrapper,
+.article-container {
+  max-width: var(--content-max);
+}

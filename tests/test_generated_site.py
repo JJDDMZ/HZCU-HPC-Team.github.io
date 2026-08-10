@@ -57,6 +57,25 @@ class GeneratedSiteTests(unittest.TestCase):
             with self.subTest(expected=expected):
                 self.assertIn(expected, self.homepage)
 
+    def test_warm_editorial_design_tokens_compile(self):
+        css = "\n".join(
+            stylesheet.read_text(encoding="utf-8")
+            for stylesheet in self.output.rglob("*.css")
+        )
+        normalized_css = "".join(css.split())
+        for token in (
+            "--color-paper:#f2efe7",
+            "--color-ink:#1f1e1a",
+            "--color-clay:#b95232",
+            "--font-display:",
+            "--content-max:90rem",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, normalized_css)
+
+    def test_dark_theme_is_not_emitted(self):
+        self.assertNotIn("theme-dropdown", self.homepage)
+
 
 if __name__ == "__main__":
     unittest.main()
