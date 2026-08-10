@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-REQUIRED_ROUTES = ("/", "/people/", "/post/", "/daily/", "/accomplishments/", "/contact/")
+REQUIRED_ROUTES = ("/", "/people/", "/post/", "/daily/", "/recruitment/", "/memory/", "/accomplishments/", "/contact/")
 REQUIRED_HOME_STRINGS = (
     "HZCU HPC Team",
     "浙大城市学院高性能计算",
@@ -56,6 +56,13 @@ class GeneratedSiteTests(unittest.TestCase):
     url: https://example.com
     weight: 40
 """,
+            encoding="utf-8",
+        )
+        fixture_recruitment = fixture / "content/recruitment/recruitment2408/index.md"
+        fixture_recruitment.write_text(
+            fixture_recruitment.read_text(encoding="utf-8").replace(
+                "date: 2025-09-01", "date: 2025-09-01\nexternal_link: https://example.com/recruitment"
+            ),
             encoding="utf-8",
         )
         cls.fixture_output = Path(tempfile.mkdtemp())
@@ -162,6 +169,45 @@ class GeneratedSiteTests(unittest.TestCase):
                 generated_homepage = (destination / "index.html").read_text(encoding="utf-8")
                 self.assertIn(f"hero.{extension}", generated_homepage)
                 self.assertNotIn("srcset=", generated_homepage)
+
+    def test_editorial_sections_use_unified_index_and_entry_views(self):
+        for route in ("post", "daily", "recruitment", "memory"):
+            with self.subTest(route=route):
+                page = (self.output / route / "index.html").read_text(encoding="utf-8")
+                self.assertIn('class="editorial-index"', page)
+                self.assertIn('class="editorial-entry', page)
+
+    def test_editorial_entries_support_text_fallback_and_image_accessibility(self):
+        diary = (self.output / "daily" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('class="editorial-entry text-only"', diary)
+        self.assertNotIn('src=""', diary)
+        self.assertNotIn("featured-image-placeholder", diary)
+        post = (self.output / "post" / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(post, r'class="editorial-entry[^\"]*with-image')
+        self.assertIn("srcset=", post)
+        self.assertIn("aria-label=\"Read", post)
+
+    def test_editorial_entries_keep_external_link_security_and_metadata(self):
+        fixture = (self.fixture_output / "recruitment" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("editorial-entry__metadata", fixture)
+        self.assertIn("editorial-entry__summary", fixture)
+        self.assertIn('href="https://example.com/recruitment" target="_blank" rel="noopener"', fixture)
+
+    def test_editorial_index_has_unique_heading_and_pagination(self):
+        for route in ("post", "daily", "recruitment", "memory"):
+            with self.subTest(route=route):
+                page = (self.output / route / "index.html").read_text(encoding="utf-8")
+                self.assertRegex(page, r'<main[^>]+aria-labelledby="[^"]+"')
+                editorial_index = page.split('<main class="editorial-index"', 1)[1].split("</main>", 1)[0]
+                self.assertEqual(editorial_index.count("<h1"), 1)
+                self.assertNotIn('id="main-content"', editorial_index)
+
+    def test_view_proxies_preserve_publication_citation(self):
+        views = REPO_ROOT / "layouts/partials/views"
+        for view in ("card", "compact", "list"):
+            self.assertEqual((views / f"{view}.html").read_text(encoding="utf-8").strip(), '{{ partial "views/editorial" . }}')
+        publication = (self.output / "publication" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("citation", publication)
 
     def test_warm_editorial_design_tokens_compile(self):
         css = "\n".join(
