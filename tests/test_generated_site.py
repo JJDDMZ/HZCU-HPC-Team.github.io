@@ -73,6 +73,13 @@ class GeneratedSiteTests(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertIn(token, normalized_css)
 
+    def test_skip_link_target_exists_on_every_generated_page(self):
+        for route in REQUIRED_ROUTES:
+            output_path = self.output / route.strip("/") / "index.html" if route != "/" else self.output / "index.html"
+            with self.subTest(route=route):
+                page = output_path.read_text(encoding="utf-8")
+                self.assertIn('id="main-content"', page)
+
     def test_editorial_navigation_and_footer_are_emitted(self):
         for expected in (
             'class="skip-link"',
