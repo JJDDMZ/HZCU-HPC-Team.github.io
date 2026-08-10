@@ -4,7 +4,7 @@
 {{ $title := $block.content.title | default $block.Title }}
 {{ $image := resources.Get (path.Join "media" $block.content.image.filename) }}
 
-<section id="{{ .wcIdentifier }}" class="editorial-hero" aria-labelledby="{{ .wcIdentifier }}-title">
+<div class="editorial-hero" aria-labelledby="{{ .wcIdentifier }}-title">
   <div class="editorial-hero__copy">
     {{ with $title }}
       <h1 id="{{ $.wcIdentifier }}-title">{{ . | markdownify }}</h1>
@@ -22,13 +22,13 @@
       {{ $widths := slice 1600 1200 800 400 }}
       {{ $srcset := slice }}
       {{ range $widths }}
-        {{ $variant := $image.Resize (printf "%dx webp" .) }}
-        {{ $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink .) }}
+        {{ if le . $image.Width }}{{ $variant := $image.Resize (printf "%dx webp" .) }}{{ $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink $variant.Width) }}{{ end }}
       {{ end }}
-      {{ $fallback := $image.Resize "1200x" }}
+      {{ $fallback := $image.Process "webp" }}
+      {{ $srcset = $srcset | append (printf "%s %dw" $fallback.RelPermalink $fallback.Width) }}
       <div class="editorial-hero__media">
-        <img src="{{ $fallback.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(min-width: 60rem) 48vw, 100vw" width="{{ .Width }}" height="{{ .Height }}" alt="{{ $title | plainify }}">
+        <img src="{{ $fallback.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(min-width: 60rem) 48vw, 100vw" width="{{ $fallback.Width }}" height="{{ $fallback.Height }}" alt="{{ $title | plainify }}">
       </div>
     {{ end }}
   {{ end }}
-</section>
+</div>

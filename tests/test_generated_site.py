@@ -61,10 +61,36 @@ class GeneratedSiteTests(unittest.TestCase):
         fixture_recruitment = fixture / "content/recruitment/recruitment2408/index.md"
         fixture_recruitment.write_text(
             fixture_recruitment.read_text(encoding="utf-8").replace(
-                "date: 2025-09-01", "date: 2025-09-01\nexternal_link: https://example.com/recruitment"
+                "date: 2025-09-01", "date: 2025-09-01\nexternal_link: https://example.com/recruitment\nsummary: \"<script>alert(1)</script> "
+                + "x" * 400
+                + "\""
             ),
             encoding="utf-8",
         )
+        fixture_memory = fixture / "content/memory/example/index.md"
+        fixture_memory.write_text(
+            fixture_memory.read_text(encoding="utf-8").replace(
+                "abstract: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellusac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum. Sed ac faucibus dolor, scelerisque sollicitudin nisi. Cras purus urna, suscipit quis sapien eu, pulvinar tempor diam.'",
+                "abstract: \"<script>alert(2)</script> " + "y" * 400 + "\"",
+            ),
+            encoding="utf-8",
+        )
+        event_dir = fixture / "content/event/editorial-fixture"
+        event_dir.mkdir(parents=True)
+        (fixture / "content/event/_index.md").write_text("---\ntitle: Events\nview: card\n---\n", encoding="utf-8")
+        (event_dir / "index.md").write_text(
+            "---\ntitle: Editorial fixture event\ndate: 2026-01-01T10:00:00Z\ndate_end: 2026-01-01T11:00:00Z\nlocation: Fixture Hall\n---\n",
+            encoding="utf-8",
+        )
+        (fixture / "layouts/_default/single.html").write_text('{{ define "main" }}{{ .Title }}{{ end }}', encoding="utf-8")
+        for extension, fixture_data in (("svg", SVG_HERO), ("gif", ANIMATED_GIF_HERO)):
+            post_dir = fixture / f"content/post/editorial-{extension}"
+            post_dir.mkdir(parents=True)
+            (post_dir / f"featured.{extension}").write_bytes(fixture_data)
+            (post_dir / "index.md").write_text(
+                f"---\ntitle: Editorial {extension}\ndate: 2026-01-01\nimage:\n  path: featured.{extension}\n---\nFixture entry.",
+                encoding="utf-8",
+            )
         cls.fixture_output = Path(tempfile.mkdtemp())
         cls.addClassCleanup(shutil.rmtree, cls.fixture_output)
         fixture_environment = environment = os.environ.copy()
@@ -170,6 +196,42 @@ class GeneratedSiteTests(unittest.TestCase):
                 self.assertIn(f"hero.{extension}", generated_homepage)
                 self.assertNotIn("srcset=", generated_homepage)
 
+    def test_editorial_entries_preserve_event_metadata_and_location(self):
+        page = (self.fixture_output / "event/index.html").read_text(encoding="utf-8")
+        self.assertIn("Fixture Hall", page)
+        self.assertRegex(page, r"(?:Jan|2026)")
+
+    def test_editorial_media_passthrough_and_responsive_candidates_are_safe(self):
+        page = (self.fixture_output / "post/index.html").read_text(encoding="utf-8")
+        for extension in ("svg", "gif"):
+            with self.subTest(extension=extension):
+                entry = page.split(f"Editorial {extension}", 1)[1].split("</article>", 1)[0]
+                self.assertIn(f"featured.{extension}", entry)
+                self.assertNotIn("srcset=", entry)
+
+    def test_editorial_summary_policy_removes_html_and_bounds_all_sources(self):
+        for route in ("recruitment", "memory"):
+            with self.subTest(route=route):
+                fixture = (self.fixture_output / f"{route}/index.html").read_text(encoding="utf-8")
+                summary = fixture.split('class="editorial-entry__summary"', 1)[1].split("</div>", 1)[0]
+                self.assertNotIn("<script>", summary)
+                self.assertLess(len(summary), 250)
+
+    def test_editorial_landmarks_and_hero_ids_are_unique(self):
+        for route in ("/", "/post/", "/daily/"):
+            with self.subTest(route=route):
+                path = self.output / ("index.html" if route == "/" else f"{route.strip('/')}/index.html")
+                page = path.read_text(encoding="utf-8")
+                self.assertEqual(page.count("<main"), 1)
+                ids = __import__("re").findall(r'\\bid="([^"]+)"', page)
+                self.assertEqual(len(ids), len(set(ids)))
+
+    def test_editorial_text_links_use_contrast_safe_clay(self):
+        tokens = (REPO_ROOT / "assets/scss/abstracts/_tokens.scss").read_text(encoding="utf-8")
+        entries = (REPO_ROOT / "assets/scss/components/_entries.scss").read_text(encoding="utf-8")
+        self.assertIn("--color-clay-dark: #8e3922", tokens)
+        self.assertIn("color: var(--color-clay-dark)", entries)
+
     def test_editorial_sections_use_unified_index_and_entry_views(self):
         for route in ("post", "daily", "recruitment", "memory"):
             with self.subTest(route=route):
@@ -205,15 +267,17 @@ class GeneratedSiteTests(unittest.TestCase):
         for route in ("post", "daily", "recruitment", "memory"):
             with self.subTest(route=route):
                 page = (self.output / route / "index.html").read_text(encoding="utf-8")
-                self.assertRegex(page, r'<main[^>]+aria-labelledby="[^"]+"')
-                editorial_index = page.split('<main class="editorial-index"', 1)[1].split("</main>", 1)[0]
+                self.assertRegex(page, r'<section[^>]+aria-labelledby="[^"]+"')
+                editorial_index = page.split('<section class="editorial-index"', 1)[1].split("</section>", 1)[0]
                 self.assertEqual(editorial_index.count("<h1"), 1)
                 self.assertNotIn('id="main-content"', editorial_index)
 
     def test_view_proxies_preserve_publication_citation(self):
         views = REPO_ROOT / "layouts/partials/views"
         for view in ("card", "compact", "list"):
-            self.assertEqual((views / f"{view}.html").read_text(encoding="utf-8").strip(), '{{ partial "views/editorial" . }}')
+            proxy = (views / f"{view}.html").read_text(encoding="utf-8")
+            self.assertIn('partial "views/editorial" .', proxy)
+            self.assertIn('"event" "project" "publication"', proxy)
         publication = (self.output / "publication" / "index.html").read_text(encoding="utf-8")
         self.assertIn("citation", publication)
 

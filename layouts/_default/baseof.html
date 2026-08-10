@@ -45,7 +45,7 @@
   {{ partial $block_path . }}
   </div>
 
-  <div class="page-body" id="main-content">
+  <main class="page-body" id="main-content">
     {{ if .Params.show_breadcrumb | and (ne .Type "book") }}
       {{ $class := cond .IsSection "universal-wrapper" "article-container" }}
       <div class="{{$class}} py-1" style="background: initial">
@@ -54,7 +54,7 @@
     {{ end }}
 
     {{ block "main" . }}{{ end }}
-  </div>
+  </main>
 
   <div class="page-footer">
     {{ if not (in (slice "book" "docs" "updates") .Type) }}

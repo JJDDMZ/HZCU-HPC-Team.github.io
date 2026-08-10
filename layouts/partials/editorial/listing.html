@@ -1,5 +1,5 @@
 {{- $headingID := printf "editorial-index-%s-title" (.Title | urlize) -}}
-<main class="editorial-index" aria-labelledby="{{ $headingID }}">
+<section class="editorial-index" aria-labelledby="{{ $headingID }}">
   <header class="editorial-index__header">
     <h1 id="{{ $headingID }}">{{ .Title }}</h1>
     {{ with .Content }}<div class="editorial-index__intro article-style">{{ . }}</div>{{ end }}
@@ -17,4 +17,4 @@
     {{ partial "functions/render_view" (dict "page" . "item" . "view" (printf "%s-end" (.Params.view | default "compact")) "index" 0) }}
   {{ end }}
   {{ partial "pagination" . }}
-</main>
+</section>
