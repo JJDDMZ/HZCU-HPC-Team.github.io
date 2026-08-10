@@ -104,6 +104,18 @@ class GeneratedSiteTests(unittest.TestCase):
             with self.subTest(expected=expected):
                 self.assertIn(expected, self.homepage)
 
+    def test_homepage_hero_is_editorial_split(self):
+        for expected in (
+            'class="editorial-hero"',
+            'class="editorial-hero__copy"',
+            'class="editorial-hero__media"',
+            'srcset="',
+            'sizes="',
+            'banner',
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, self.homepage)
+
     def test_warm_editorial_design_tokens_compile(self):
         css = "\n".join(
             stylesheet.read_text(encoding="utf-8")
