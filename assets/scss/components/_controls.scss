@@ -1,0 +1,23 @@
+.search-header h2 {
+  margin: 0;
+  line-height: 1;
+}
+
+.col-search-close .js-search,
+.share > li > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.col-search-close .js-search:focus-visible,
+.share > li > a:focus-visible {
+  outline: 3px solid var(--color-clay);
+  outline-offset: 2px;
+}
+
+.share > li > a {
+  text-decoration: none;
+}

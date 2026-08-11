@@ -1,0 +1,20 @@
+<div class="editorial-footer-grid">
+  <div class="editorial-footer-brand">
+    <a href="{{ site.Home.RelPermalink }}">{{ site.Title }}</a>
+  </div>
+
+  {{ with site.Menus.main }}
+    <nav class="editorial-footer-menu" aria-label="Footer navigation">
+      <ul>
+        {{ range . }}
+          {{ $is_external := hasPrefix .URL "http" }}
+          <li><a href="{{ if $is_external }}{{ .URL }}{{ else }}{{ .URL | relLangURL }}{{ end }}"{{ if $is_external }} target="_blank" rel="noopener"{{ end }}>{{ .Name | safeHTML }}</a></li>
+        {{ end }}
+      </ul>
+    </nav>
+  {{ end }}
+
+  <div class="editorial-footer-license">
+    {{ partial "site_footer_license" . }}
+  </div>
+</div>

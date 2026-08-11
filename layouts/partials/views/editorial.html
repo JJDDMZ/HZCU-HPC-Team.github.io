@@ -1,0 +1,49 @@
+{{- $item := .item -}}
+{{- $link := $item.RelPermalink -}}
+{{- $target := "" -}}
+{{- if $item.Params.external_link -}}
+  {{- $link = $item.Params.external_link -}}
+  {{- $target = `target="_blank" rel="noopener"` -}}
+{{- end -}}
+{{- $summary := "" -}}
+{{- $summaryLength := site.Params.summaryLength | default 180 -}}
+{{- with $item.Params.summary -}}
+  {{- $summary = . | plainify | htmlUnescape | truncate $summaryLength -}}
+{{- else with $item.Params.abstract -}}
+  {{- $summary = . | plainify | htmlUnescape | truncate $summaryLength -}}
+{{- else with $item.Summary -}}
+  {{- $summary = . | plainify | htmlUnescape | truncate $summaryLength -}}
+{{- end -}}
+{{- $featured := partial "blox-core/functions/get_featured_image.html" $item -}}
+{{- $attachment := partial "functions/has_attachments" $item -}}
+<article class="editorial-entry{{ with $featured }} with-image{{ else }} text-only{{ end }}" data-reveal>
+  <div class="editorial-entry__body">
+    <div class="editorial-entry__metadata">
+      {{ partial "page_metadata" (dict "page" $item "is_list" 1) }}
+    </div>
+    <h2 class="editorial-entry__title"><a href="{{ $link }}" {{ $target | safeHTMLAttr }}>{{ $item.Title }}</a></h2>
+    {{- with $summary }}<div class="editorial-entry__summary">{{ . }}</div>{{ end -}}
+    {{- if $attachment }}<div class="editorial-entry__attachments">{{ partial "page_links" (dict "page" $item "is_list" 1) }}</div>{{ end -}}
+    <a class="editorial-entry__read" href="{{ $link }}" {{ $target | safeHTMLAttr }} aria-label="Read {{ $item.Title | plainify }}">Read</a>
+  </div>
+  {{- with $featured -}}
+    <a class="editorial-entry__media" href="{{ $link }}" {{ $target | safeHTMLAttr }} tabindex="-1" aria-hidden="true">
+      {{- if or (eq .MediaType.SubType "svg") (eq .MediaType.SubType "gif") -}}
+        <img src="{{ .RelPermalink }}" alt="" aria-hidden="true" loading="lazy">
+      {{- else -}}
+        {{- $anchor := $item.Params.image.focal_point | default "Smart" -}}
+        {{- $width := 960 -}}{{- if lt .Width 960 }}{{ $width = .Width }}{{ end -}}
+        {{- $height := 640 -}}{{- if lt .Height 640 }}{{ $height = .Height }}{{ end -}}
+        {{- $image := .Fill (printf "%dx%d %s" $width $height $anchor) -}}
+        {{- $image = $image.Process "webp" -}}
+        {{- $widths := slice 480 720 -}}
+        {{- $srcset := slice -}}
+        {{- range $widths -}}
+          {{- if le . $image.Width -}}{{- $variant := $image.Resize (printf "%dx" .) -}}{{- $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink $variant.Width) -}}{{- end -}}
+        {{- end -}}
+        {{- $srcset = $srcset | append (printf "%s %dw" $image.RelPermalink $image.Width) -}}
+        <img src="{{ $image.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(max-width: 47.99rem) 100vw, 40vw" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="" aria-hidden="true" loading="lazy">
+      {{- end -}}
+    </a>
+  {{- end -}}
+</article>

@@ -1,0 +1,36 @@
+{{- $headingID := printf "editorial-index-%s-title" (.Title | urlize) -}}
+<section class="editorial-index" aria-labelledby="{{ $headingID }}">
+  <header class="editorial-index__header{{ if eq .Section "accomplishments" }} editorial-index__header--accomplishments{{ end }}">
+    <h1 id="{{ $headingID }}">{{ .Title }}</h1>
+    {{ with .Content }}
+      <div class="editorial-index__intro article-style">
+        {{- if eq $.Section "accomplishments" -}}
+          {{- $chunks := split . "<h2" -}}
+          {{- range $index, $chunk := $chunks -}}
+            {{- $trimmed := trim $chunk " \n\t" -}}
+            {{- if gt $index 0 -}}
+              {{- printf `<article class="editorial-accomplishment" data-reveal><h2%s</article>` $chunk | safeHTML -}}
+            {{- else if $trimmed -}}
+              {{- $trimmed | safeHTML -}}
+            {{- end -}}
+          {{- end -}}
+        {{- else -}}
+          {{- . -}}
+        {{- end -}}
+      </div>
+    {{ end }}
+  </header>
+  {{ if templates.Exists (printf "partials/views/%s-start.html" (lower (.Params.view | default "compact"))) }}
+    {{ partial "functions/render_view" (dict "page" . "item" . "view" (printf "%s-start" (.Params.view | default "compact")) "index" 0) }}
+  {{ end }}
+  {{ $paginator := .Paginate .Pages }}
+  <div class="editorial-index__entries">
+    {{ range $index, $item := $paginator.Pages }}
+      {{ partial "functions/render_view" (dict "page" $ "item" $item "view" ($.Params.view | default "compact") "index" $index) }}
+    {{ end }}
+  </div>
+  {{ if templates.Exists (printf "partials/views/%s-end.html" (lower (.Params.view | default "compact"))) }}
+    {{ partial "functions/render_view" (dict "page" . "item" . "view" (printf "%s-end" (.Params.view | default "compact")) "index" 0) }}
+  {{ end }}
+  {{ partial "pagination" . }}
+</section>

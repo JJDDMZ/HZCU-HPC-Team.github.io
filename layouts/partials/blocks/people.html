@@ -1,0 +1,85 @@
+{{/* Warm editorial people directory. */}}
+{{ $page := .wcPage }}
+{{ $block := .wcBlock }}
+{{ $show_social := $block.design.show_social | default false }}
+{{ $show_interests := $block.design.show_interests | default true }}
+{{ $show_organizations := $block.design.show_organizations | default false }}
+{{ $show_role := $block.design.show_role | default true }}
+{{ $title := $block.content.title | default $block.Title }}
+{{ $groups := $block.content.user_groups }}
+{{ $has_multiple_groups := gt (len $groups) 1 }}
+{{ $heading_id := printf "%s-people-title" .wcIdentifier }}
+
+<section class="editorial-people" aria-labelledby="{{ $heading_id }}">
+  <div class="editorial-people__intro">
+    {{ with $title }}
+      <h1 id="{{ $heading_id }}">{{ . | markdownify | emojify }}</h1>
+    {{ end }}
+    {{ with $block.content.subtitle }}<p class="editorial-people__subtitle">{{ . | markdownify | emojify }}</p>{{ end }}
+    {{ with $block.content.text }}<div class="editorial-people__text">{{ . | emojify | $page.RenderString }}</div>{{ end }}
+  </div>
+
+  {{ range $group := $groups }}
+    {{ $query := where (where site.Pages "Section" "authors") ".Params.user_groups" "intersect" (slice $group) }}
+    {{ $sort_by := $block.content.sort_by | default "Params.last_name" }}
+    {{ $sort_by = partial "blox-core/functions/get_sort_by_parameter" $sort_by }}
+    {{ $sort_order := cond ($block.content.sort_ascending | default true) "asc" "desc" }}
+    {{ $query = sort $query $sort_by $sort_order }}
+    {{ if $query }}
+      {{ $group_id := printf "%s-%s" $.wcIdentifier ($group | anchorize) }}
+      <section class="editorial-people__group" aria-labelledby="{{ $group_id }}">
+        {{ if $has_multiple_groups }}<h2 id="{{ $group_id }}">{{ $group | markdownify }}</h2>{{ end }}
+        <div class="editorial-people__grid">
+          {{ range $person := $query }}
+            {{ $avatar := ($person.Resources.ByType "image").GetMatch "*avatar*" }}
+            {{ $link := "" }}
+            {{ with site.GetPage (printf "/authors/%s" (path.Base $person.File.Dir)) }}{{ $link = .RelPermalink }}{{ end }}
+            <article class="editorial-person">
+              {{ if and site.Params.features.avatar.gravatar $person.Params.email }}
+                {{ $gravatar := printf "https://s.gravatar.com/avatar/%s?s=540" (md5 $person.Params.email) }}
+                <img class="editorial-person__portrait avatar {{ if eq (site.Params.features.avatar.shape | default "circle") "square" }}avatar-square{{ else }}avatar-circle{{ end }}" src="{{ $gravatar }}" width="270" height="270" loading="lazy" alt="Portrait of {{ $person.Title | plainify }}">
+              {{ else if $avatar }}
+                {{ if or (eq $avatar.MediaType.SubType "svg") (eq $avatar.MediaType.SubType "gif") }}
+                  <img class="editorial-person__portrait avatar {{ if eq (site.Params.features.avatar.shape | default "circle") "square" }}avatar-square{{ else }}avatar-circle{{ end }}" src="{{ $avatar.RelPermalink }}" width="{{ $avatar.Width }}" height="{{ $avatar.Height }}" loading="lazy" alt="Portrait of {{ $person.Title | plainify }}">
+                {{ else }}
+                  {{ $portrait_sizes := slice 540 405 270 }}
+                  {{ $srcset := slice }}
+                  {{ range $portrait_sizes }}
+                    {{ if le . $avatar.Width }}
+                      {{ $variant := $avatar.Fill (printf "%dx%d Center webp" . .) }}
+                      {{ $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink $variant.Width) }}
+                    {{ end }}
+                  {{ end }}
+                  {{ $fallback := $avatar }}
+                  {{ if ge $avatar.Width 270 }}{{ $fallback = $avatar.Fill "270x270 Center webp" }}{{ end }}
+                  <img class="editorial-person__portrait avatar {{ if eq (site.Params.features.avatar.shape | default "circle") "square" }}avatar-square{{ else }}avatar-circle{{ end }}" src="{{ $fallback.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(min-width: 75rem) 21vw, (min-width: 48rem) 29vw, (min-width: 36rem) 44vw, 90vw" width="{{ $fallback.Width }}" height="{{ $fallback.Height }}" loading="lazy" alt="Portrait of {{ $person.Title | plainify }}">
+                {{ end }}
+              {{ end }}
+              <div class="editorial-person__details">
+                <h3>{{ with $link }}<a href="{{ . }}">{{ end }}{{ $person.Title }}{{ if $link }}</a>{{ end }}</h3>
+                {{ if and $show_organizations $person.Params.organizations }}{{ range $person.Params.organizations }}<p class="editorial-person__organization">{{ .name }}</p>{{ end }}{{ end }}
+                {{ if and $show_role $person.Params.role }}<p class="editorial-person__role">{{ $person.Params.role | markdownify | emojify }}</p>{{ end }}
+                {{ if $show_social }}
+                  {{ with $person.Params.social }}
+                    <ul class="network-icon editorial-person__social" aria-label="Social links for {{ $person.Title | plainify }}">
+                      {{ range . }}
+                        {{ $link := .link }}
+                        {{ $scheme := (urls.Parse $link).Scheme }}
+                        {{ $target := "" }}
+                        {{ if not $scheme }}{{ $link = .link | relLangURL }}{{ else if in (slice "http" "https") $scheme }}{{ $target = "target=\"_blank\" rel=\"noopener\"" }}{{ end }}
+                        {{ $pack := or .icon_pack "fas" }}
+                        {{ $pack_prefix := cond (in (slice "fab" "fas" "far" "fal") $pack) "fa" $pack }}
+                        <li><a href="{{ $link | safeURL }}" aria-label="{{ .icon | humanize }} for {{ $person.Title | plainify }}" title="{{ .icon | humanize }}" {{ $target | safeHTMLAttr }}><i class="{{ $pack }} {{ $pack_prefix }}-{{ .icon }}" aria-hidden="true"></i></a></li>
+                      {{ end }}
+                    </ul>
+                  {{ end }}
+                {{ end }}
+                {{ if and $show_interests $person.Params.interests }}<p class="editorial-person__interests">{{ delimit $person.Params.interests ", " | markdownify | emojify }}</p>{{ end }}
+              </div>
+            </article>
+          {{ end }}
+        </div>
+      </section>
+    {{ end }}
+  {{ end }}
+</section>

@@ -1,0 +1,48 @@
+:root {
+  --color-paper: #f2efe7;
+  --color-paper-deep: #e8e2d7;
+  --color-ink: #1f1e1a;
+  --color-muted: #625e55;
+  --color-line: #c9c1b4;
+  --color-line-strong: #8a8378;
+  --color-clay: #b95232;
+  --color-clay-dark: #8e3922;
+  --color-clay-light: #cf7a5c;
+  --color-sage: #788476;
+  --color-inverse: #24241f;
+  --color-inverse-text: #f2efe7;
+
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --font-body: Inter, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --heading-sm: clamp(1.5rem, 1.2rem + 1vw, 2.25rem);
+  --heading-md: clamp(2.25rem, 1.6rem + 2.5vw, 4rem);
+  --heading-hero: clamp(3rem, 2rem + 5vw, 7rem);
+  --heading-hero-compact: clamp(3rem, 2rem + 3.5vw, 5.5rem);
+  --heading-display-compact: clamp(2.25rem, 1.6rem + 1.8vw, 4.5rem);
+  --heading-section-compact: clamp(1.75rem, 1.3rem + 1.2vw, 3.25rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.25rem;
+  --space-7: 3.5rem;
+
+  --content-max: 90rem;
+  --reading-max: 70ch;
+  --page-gutter: clamp(1.5rem, 5vw, 6rem);
+  --z-header: 100;
+  --z-menu: 200;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+$font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+$font-body: Inter, "Helvetica Neue", Arial, sans-serif;
+$font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;

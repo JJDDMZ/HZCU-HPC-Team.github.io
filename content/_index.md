@@ -23,7 +23,7 @@ sections:
       count: 5
       filters:
         author: ''
-        category: ''
+        category: introduction
         exclude_featured: false
         publication_type: ''
         tag: ''
@@ -33,25 +33,27 @@ sections:
     design:
       view: card
       columns: '1'
-  
-  - block: markdown
+    id: introduction
+
+  - block: collection
     content:
-      title: ACCOMPLISHMENTS
-      text: |
-        - **IPCC Excellence Award**  
-          *Date:* Aug. 2022
-
-        - **CPC Excellence Award**  
-          *Date:* Aug. 2023
-
-        - **ASC2024 Second Prize**  
-          *Date:* Feb. 2024
-
-        - **ASC2025 Second Prize**  
-          *Date:* Feb. 2025
+      title: JOIN US
+      subtitle:
+      text:
+      count: 5
+      filters:
+        author: ''
+        category: join-us
+        exclude_featured: false
+        publication_type: ''
+        tag: ''
+      offset: 0
+      order: desc
+      page_type: recruitment
     design:
+      view: card
       columns: '1'
-    id: accomplishments
+    id: join-us
 
 # ERROR：Bao Zhuhan: 当前Publication页面无实际超链接，该部分停用
   # - block: collection

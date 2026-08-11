@@ -1,0 +1,59 @@
+a {
+  color: var(--color-clay-dark);
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+  transition: color 160ms var(--ease-out), text-decoration-color 160ms var(--ease-out);
+}
+
+a:hover {
+  color: var(--color-clay-dark);
+  text-decoration-color: var(--color-clay-dark);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display-1,
+.display-2,
+.display-3,
+.display-4 {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+h1,
+.display-1 {
+  font-size: var(--heading-hero);
+}
+
+h2,
+.display-2 {
+  font-size: var(--heading-md);
+}
+
+h3,
+h4,
+h5,
+h6,
+.display-3,
+.display-4 {
+  font-size: var(--heading-sm);
+}
+
+article {
+  line-height: 1.78;
+}
+
+.article-metadata,
+.article-date,
+.metadata {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}

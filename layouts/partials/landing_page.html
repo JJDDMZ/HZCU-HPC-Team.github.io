@@ -1,0 +1,19 @@
+{{/* Preserve Hugo Blox landing-page rendering while demoting section headings below the page H1. */}}
+<span class="js-widget-page d-none"></span>
+
+{{ if not .IsHome }}
+  <h1 class="sr-only">{{ .Title }}</h1>
+{{ end }}
+
+{{ range $block := .Params.sections }}
+  {{ if or (not $block.demo) (and $block.demo (eq (os.Getenv "WC_DEMO") "true")) }}
+    {{ $section := partial "functions/parse_block_v2" (dict "page" $ "block" $block) }}
+    {{ if $.IsHome }}
+      {{ $section = replaceRE `<h1 class="mb-0">([\s\S]*?)</h1>` `<h2 class="mb-0">$1</h2>` $section }}
+    {{ else }}
+      {{ $section = replaceRE `<h1([^>]*)>` `<h2$1>` $section }}
+      {{ $section = replaceRE `</h1>` `</h2>` $section }}
+    {{ end }}
+    {{ $section | safeHTML }}
+  {{ end }}
+{{ end }}
