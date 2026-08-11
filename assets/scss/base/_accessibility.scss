@@ -37,3 +37,24 @@ input[type="reset"],
     transition-duration: 0.01ms !important;
   }
 }
+
+[data-reveal].is-reveal-ready {
+  opacity: 0;
+  transform: translateY(0.875rem);
+  transition:
+    opacity 420ms var(--ease-out) var(--reveal-delay, 0ms),
+    transform 420ms var(--ease-out) var(--reveal-delay, 0ms);
+}
+
+[data-reveal].is-reveal-ready.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal].is-reveal-ready {
+    opacity: 1;
+    transform: none;
+  }
+}

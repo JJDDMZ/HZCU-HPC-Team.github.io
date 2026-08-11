@@ -162,3 +162,32 @@
     gap: var(--space-6) var(--space-4);
   }
 }
+
+@media (min-width: 64rem) {
+  .editorial-people {
+    max-width: 80rem;
+    padding-block: 4rem 6rem;
+  }
+
+  .editorial-people__intro {
+    margin-bottom: 3rem;
+  }
+
+  .editorial-people__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .editorial-people__group + .editorial-people__group {
+    margin-top: 4rem;
+    padding-top: 2.5rem;
+  }
+
+  .editorial-person h3 {
+    font-size: clamp(1.2rem, calc(1.05rem + 0.35vw), 1.5rem);
+  }
+
+  #profile-page .portrait-title h1 {
+    font-size: clamp(2.25rem, calc(1.8rem + 1vw), 2.5rem);
+    line-height: 1.05;
+  }
+}

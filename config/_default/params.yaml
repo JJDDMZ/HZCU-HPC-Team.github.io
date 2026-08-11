@@ -5,6 +5,9 @@
 
 # Appearance
 
+plugins_js:
+  - editorial
+
 appearance:
   theme_day: minimal
   theme_night:
@@ -32,6 +35,7 @@ marketing:
 # Site header
 
 header:
+  on_scroll: sticky
   navbar:
     block: editorial
     enable: true

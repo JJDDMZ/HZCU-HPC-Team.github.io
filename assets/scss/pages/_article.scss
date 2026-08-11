@@ -1,0 +1,205 @@
+.editorial-article {
+  padding-block: clamp(2.5rem, 6vw, 6rem) clamp(4rem, 9vw, 8rem);
+  overflow-wrap: anywhere;
+
+  .article-container {
+    width: calc(100% - (2 * var(--page-gutter)));
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+
+  .page_header {
+    padding-block: 0 clamp(2rem, 5vw, 4rem);
+
+    h1 {
+      max-width: 24ch;
+      margin: 0;
+      font-size: clamp(1.75rem, calc(1.35rem + 1vw), 2.75rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+      max-width: 58ch;
+      margin: 1.5rem 0 0;
+      color: var(--color-muted);
+      font-size: clamp(1.05rem, 1.45vw, 1.3rem);
+      line-height: 1.55;
+    }
+
+    .article-metadata {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      margin: 1.5rem 0 0;
+      color: var(--color-muted);
+    }
+  }
+
+  .article-header {
+    position: relative;
+    width: calc(100% - (2 * var(--page-gutter)));
+    margin: 0 auto clamp(2rem, 5vw, 4.5rem);
+
+  }
+
+  .article-banner,
+  .featured-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    border: 1px solid var(--color-line);
+    background: var(--color-paper-deep);
+    object-fit: contain;
+  }
+
+  .article-banner {
+    max-height: 60vh;
+    object-fit: cover;
+  }
+
+  @media (min-width: 64rem) {
+    .article-banner {
+      max-height: 32rem;
+    }
+  }
+
+  .article-header-caption {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 0 auto;
+    padding: 0.45rem 0.75rem;
+    color: var(--color-inverse-text);
+    background: var(--color-inverse);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  .article-style {
+    max-width: var(--reading-max);
+    margin-inline: auto;
+    font-size: clamp(1rem, 1.1vw, 1.1rem);
+    > * {
+      max-width: 100%;
+    }
+
+    p,
+    ul,
+    ol,
+    blockquote,
+    pre,
+    table {
+      margin-block: 1.35em;
+    }
+
+    h2,
+    h3,
+    h4 {
+      margin-block: 2.4em 0.75em;
+      scroll-margin-top: 5rem;
+    }
+
+    iframe {
+      max-width: 100%;
+    }
+
+    figure.article-figure {
+      margin: clamp(2rem, 5vw, 3.5rem) 0;
+
+      img {
+        width: auto;
+        max-width: 100%;
+        margin: 0;
+        border: 1px solid var(--color-line);
+      }
+
+      figcaption {
+        margin-top: 0.65rem;
+        color: var(--color-muted);
+        font-size: var(--text-sm);
+        line-height: 1.5;
+        text-align: left;
+      }
+    }
+
+    pre,
+    .highlight {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      display: block;
+      max-width: 100%;
+      overflow-x: auto;
+      border-collapse: collapse;
+    }
+
+    blockquote {
+      margin-inline: 0;
+      padding: 0.25rem 0 0.25rem 1.25rem;
+      border-inline-start: 0.25rem solid var(--color-clay);
+      color: var(--color-muted);
+      font-family: var(--font-display);
+      font-size: 1.15em;
+    }
+  }
+
+  .page_footer {
+    max-width: var(--reading-max);
+    margin: clamp(3rem, 7vw, 6rem) auto 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-line-strong);
+  }
+
+}
+
+@media (max-width: 47.99rem) {
+  .editorial-article .article-style {
+    font-size: 1rem;
+  }
+}
+
+.editorial-article .article-style .cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: flex-start;
+  margin: clamp(2rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.7rem 1.4rem;
+    border-radius: 999px;
+    color: var(--color-paper);
+    background: var(--color-clay-dark);
+    border: 1px solid var(--color-clay-dark);
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.3;
+    text-decoration: none;
+    white-space: normal;
+    transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-ink);
+      background: var(--color-clay-light);
+      border-color: var(--color-clay-light);
+      transform: scale(1.05);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorial-article .article-style .cta-group .btn {
+    transition: none;
+  }
+}

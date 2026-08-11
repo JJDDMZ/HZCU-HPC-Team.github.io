@@ -16,7 +16,7 @@
 {{- end -}}
 {{- $featured := partial "blox-core/functions/get_featured_image.html" $item -}}
 {{- $attachment := partial "functions/has_attachments" $item -}}
-<article class="editorial-entry{{ with $featured }} with-image{{ else }} text-only{{ end }}">
+<article class="editorial-entry{{ with $featured }} with-image{{ else }} text-only{{ end }}" data-reveal>
   <div class="editorial-entry__body">
     <div class="editorial-entry__metadata">
       {{ partial "page_metadata" (dict "page" $item "is_list" 1) }}
@@ -29,7 +29,7 @@
   {{- with $featured -}}
     <a class="editorial-entry__media" href="{{ $link }}" {{ $target | safeHTMLAttr }} tabindex="-1" aria-hidden="true">
       {{- if or (eq .MediaType.SubType "svg") (eq .MediaType.SubType "gif") -}}
-        <img src="{{ .RelPermalink }}" alt="" loading="lazy">
+        <img src="{{ .RelPermalink }}" alt="" aria-hidden="true" loading="lazy">
       {{- else -}}
         {{- $anchor := $item.Params.image.focal_point | default "Smart" -}}
         {{- $width := 960 -}}{{- if lt .Width 960 }}{{ $width = .Width }}{{ end -}}
@@ -42,7 +42,7 @@
           {{- if le . $image.Width -}}{{- $variant := $image.Resize (printf "%dx" .) -}}{{- $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink $variant.Width) -}}{{- end -}}
         {{- end -}}
         {{- $srcset = $srcset | append (printf "%s %dw" $image.RelPermalink $image.Width) -}}
-        <img src="{{ $image.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(max-width: 47.99rem) 100vw, 40vw" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="" loading="lazy">
+        <img src="{{ $image.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(max-width: 47.99rem) 100vw, 40vw" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="" aria-hidden="true" loading="lazy">
       {{- end -}}
     </a>
   {{- end -}}
