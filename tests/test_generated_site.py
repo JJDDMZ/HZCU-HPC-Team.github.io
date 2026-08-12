@@ -92,6 +92,31 @@ class GeneratedSiteTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
+        fallback_preview_dir = fixture / "content/recruitment/homepage-preview-fallback"
+        fallback_preview_dir.mkdir(parents=True)
+        (fallback_preview_dir / "index.md").write_text(
+            """---
+title: Fixture homepage fallback preview
+date: 2025-09-03
+categories:
+  - introduction
+summary: Fixture homepage fallback summary.
+---
+""",
+            encoding="utf-8",
+        )
+        empty_preview_dir = fixture / "content/recruitment/homepage-preview-empty"
+        empty_preview_dir.mkdir(parents=True)
+        (empty_preview_dir / "index.md").write_text(
+            """---
+title: Fixture homepage empty preview
+date: 2025-09-02
+categories:
+  - introduction
+---
+""",
+            encoding="utf-8",
+        )
         fixture_memory = fixture / "content/memory/example/index.md"
         fixture_memory.write_text(
             fixture_memory.read_text(encoding="utf-8").replace(
@@ -196,6 +221,7 @@ class GeneratedSiteTests(unittest.TestCase):
         if fixture_result.returncode:
             raise RuntimeError(f"Hugo fixture build failed with exit code {fixture_result.returncode}:\n{fixture_result.stdout}\n{fixture_result.stderr}")
         cls.fixture_article = (cls.fixture_output / "post/2025-06-03-ASC2024-prize/index.html").read_text(encoding="utf-8")
+        cls.fixture_homepage = (cls.fixture_output / "index.html").read_text(encoding="utf-8")
         environment = os.environ.copy()
         environment.update(
             {
@@ -234,6 +260,10 @@ class GeneratedSiteTests(unittest.TestCase):
             stylesheet.read_text(encoding="utf-8")
             for stylesheet in self.output.rglob("*.css")
         )
+
+    def homepage_section(self, section_id, fixture=False):
+        homepage = self.fixture_homepage if fixture else self.homepage
+        return homepage.split(f'id="{section_id}"', 1)[1].split("</section>", 1)[0]
 
     def test_key_pages_have_exactly_one_primary_heading(self):
         for route in REQUIRED_ROUTES + (AUTHOR_ROUTE, "/publication/", "/post/2025-06-03-ASC2024-prize/"):
@@ -550,12 +580,106 @@ class GeneratedSiteTests(unittest.TestCase):
         self.assertIn("srcset=", post)
         self.assertIn("aria-label=\"Read", post)
 
-    def test_homepage_recruitment_summary_is_a_concise_safe_excerpt(self):
-        entry = self.homepage.split('浙大城市学院超算队介绍', 1)[1].split('</article>', 1)[0]
-        summary = entry.split('class="editorial-entry__summary"', 1)[1].split('</div>', 1)[0]
-        self.assertNotIn("<h2", summary)
-        self.assertNotIn("<h3", summary)
-        self.assertLess(len(summary), 500)
+    def test_homepage_collections_use_structured_preview_view(self):
+        cases = (
+            (
+                "introduction",
+                "INTRODUCTION",
+                "浙大城市学院超算队介绍",
+                "/recruitment/recruitment2408/",
+                ("我们是谁？", "我们参加的比赛", "我们能提供什么？"),
+            ),
+            (
+                "join-us",
+                "JOIN US",
+                "2025年超算队招新",
+                "/recruitment/join-us/",
+                ("招新条件", "报名及联系方式", "1004145044"),
+            ),
+        )
+
+        for section_id, eyebrow, title, href, preview_strings in cases:
+            with self.subTest(section_id=section_id):
+                section = self.homepage_section(section_id)
+                self.assertNotIn('class="section-heading', section)
+                self.assertIn(
+                    'class="homepage-preview homepage-preview--first" data-reveal',
+                    section,
+                )
+                self.assertRegex(
+                    section,
+                    rf'<h2 class="homepage-preview__eyebrow">\s*{re.escape(eyebrow)}\s*</h2>',
+                )
+                self.assertRegex(
+                    section,
+                    rf'<h3 class="homepage-preview__title">\s*<a href="{re.escape(href)}"[^>]*>{re.escape(title)}</a>\s*</h3>',
+                )
+                self.assertRegex(
+                    section,
+                    rf'<a class="homepage-preview__read" href="{re.escape(href)}"[^>]*>\s*阅读全文 →\s*</a>',
+                )
+                preview = section.split('class="homepage-preview__content article-style"', 1)[1]
+                preview = preview.split("</article>", 1)[0]
+                self.assertIn("<h4", preview)
+                self.assertNotIn("<h3", preview)
+                for expected in preview_strings:
+                    self.assertIn(expected, preview)
+                self.assertIn("<p", preview)
+                self.assertIn("<ul", preview)
+                self.assertNotIn("<img", section)
+                self.assertNotIn("editorial-entry__media", section)
+
+    def test_homepage_preview_falls_back_and_omits_empty_content(self):
+        section = self.homepage_section("introduction", fixture=True)
+        articles = re.findall(
+            r'<article class="[^"]*\bhomepage-preview\b[^"]*"[^>]*>[\s\S]*?</article>',
+            section,
+        )
+
+        self.assertEqual(len(articles), 3)
+        self.assertEqual(section.count('class="homepage-preview__eyebrow"'), 1)
+        self.assertIn("homepage-preview--first", articles[0].split(">", 1)[0])
+
+        fallback = next(
+            article for article in articles if "Fixture homepage fallback preview" in article
+        )
+        self.assertIn("Fixture homepage fallback summary.", fallback)
+        self.assertIn('class="homepage-preview__content article-style"', fallback)
+
+        empty = next(
+            article for article in articles if "Fixture homepage empty preview" in article
+        )
+        self.assertIn("homepage-preview--text-only", empty.split(">", 1)[0])
+        self.assertNotIn("homepage-preview__content", empty)
+
+        external = next(article for article in articles if "浙大城市学院超算队介绍" in article)
+        external_links = re.findall(
+            r'<a[^>]+href="https://example.com/recruitment"[^>]*>',
+            external,
+        )
+        self.assertEqual(len(external_links), 2)
+        for link in external_links:
+            self.assertIn('target="_blank"', link)
+            self.assertIn('rel="noopener"', link)
+
+    def test_homepage_preview_heading_hierarchy_and_view_isolation(self):
+        self.assertEqual(self.homepage.count("<h1"), 1)
+        self.assertEqual(self.homepage.count('id="introduction"'), 1)
+        self.assertEqual(self.homepage.count('id="join-us"'), 1)
+        self.assertEqual(self.homepage.count('class="homepage-preview__eyebrow"'), 2)
+        self.assertEqual(self.homepage.count('class="homepage-preview__title"'), 2)
+        for section_id in ("introduction", "join-us"):
+            with self.subTest(section_id=section_id):
+                section = self.homepage_section(section_id)
+                self.assertLess(section.index("homepage-preview__eyebrow"), section.index("homepage-preview__title"))
+                self.assertLess(section.index("homepage-preview__title"), section.index("homepage-preview__read"))
+                self.assertLess(section.index("homepage-preview__read"), section.index("homepage-preview__content"))
+        self.assertNotIn("homepage-preview", (self.output / "recruitment/index.html").read_text(encoding="utf-8"))
+
+        for route in ("post", "daily", "recruitment", "memory"):
+            with self.subTest(route=route):
+                page = (self.output / route / "index.html").read_text(encoding="utf-8")
+                self.assertIn('class="editorial-entry', page)
 
     def test_editorial_entries_keep_external_link_security_and_metadata(self):
         fixture = (self.fixture_output / "recruitment" / "index.html").read_text(encoding="utf-8")
@@ -842,15 +966,16 @@ class GeneratedSiteTests(unittest.TestCase):
     def test_home_section_headings_are_h2_but_hero_remains_h1(self):
         home = self.homepage
         self.assertEqual(home.count("<h1"), 1)
-        section_headings = re.findall(r'<div class="section-heading[^\"]*">[\s\S]*?</div>', home)
-        self.assertTrue(section_headings)
-        self.assertTrue(all("<h1" not in heading for heading in section_headings))
-        self.assertTrue(any("<h2" in heading for heading in section_headings))
+        for section_id, eyebrow in (("introduction", "INTRODUCTION"), ("join-us", "JOIN US")):
+            with self.subTest(section_id=section_id):
+                section = self.homepage_section(section_id)
+                self.assertRegex(
+                    section,
+                    rf'<h2 class="homepage-preview__eyebrow">\s*{eyebrow}\s*</h2>',
+                )
+                self.assertIn('<h3 class="homepage-preview__title">', section)
         styles = (REPO_ROOT / "assets/scss/pages/_home.scss").read_text(encoding="utf-8")
-        self.assertIn(".home-section .section-heading h2", styles)
         self.assertNotIn(".home-section .section-heading h1", styles)
-        css = self.compiled_css()
-        self.assertIn(".home-section .section-heading h2", css)
 
     def test_author_profile_social_links_are_accessible(self):
         page = self.generated_page_path("/author/yanan-sheng-盛亚楠/").read_text(encoding="utf-8")
@@ -897,12 +1022,14 @@ class GeneratedSiteTests(unittest.TestCase):
         self.assertIn("wg-hero", home_sections[0])
         self.assertTrue(all("wg-hero" not in section for section in home_sections[1:]))
 
-        collection = self.homepage.split('id="introduction"', 1)[1].split("</section>", 1)[0]
-        self.assertRegex(collection, r'class="section-heading[^"]*"[\s\S]*?<h2')
-        self.assertRegex(collection, r'<article class="editorial-entry')
-        join_us = self.homepage.split('id="join-us"', 1)[1].split("</section>", 1)[0]
-        self.assertRegex(join_us, r'class="section-heading[^"]*"[\s\S]*?<h2')
-        self.assertRegex(join_us, r'<article class="editorial-entry')
+        collection = self.homepage_section("introduction")
+        self.assertNotIn('class="section-heading', collection)
+        self.assertRegex(collection, r'<article class="[^"]*homepage-preview')
+        self.assertIn('<h2 class="homepage-preview__eyebrow">', collection)
+        join_us = self.homepage_section("join-us")
+        self.assertNotIn('class="section-heading', join_us)
+        self.assertRegex(join_us, r'<article class="[^"]*homepage-preview')
+        self.assertIn('<h2 class="homepage-preview__eyebrow">', join_us)
 
         self.assertIn('class="cta-group"', self.homepage)
 
