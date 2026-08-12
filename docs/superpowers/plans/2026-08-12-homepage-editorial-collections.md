@@ -240,7 +240,6 @@ In `test_home_section_headings_are_h2_but_hero_remains_h1`, replace the method b
                 )
                 self.assertIn('<h3 class="homepage-preview__title">', section)
         styles = (REPO_ROOT / "assets/scss/pages/_home.scss").read_text(encoding="utf-8")
-        self.assertIn(".homepage-preview__eyebrow", styles)
         self.assertNotIn(".home-section .section-heading h1", styles)
 ```
 
@@ -255,18 +254,6 @@ In `test_task8_style_selectors_match_generated_home_contact_and_publication_dom`
         self.assertNotIn('class="section-heading', join_us)
         self.assertRegex(join_us, r'<article class="[^"]*homepage-preview')
         self.assertIn('<h2 class="homepage-preview__eyebrow">', join_us)
-```
-
-In `test_warm_editorial_rhythm_styles_compile_for_home_and_lists`, replace this tuple item:
-
-```python
-            "#section-collection .editorial-entry:first-child",
-```
-
-with:
-
-```python
-            ".homepage-preview",
 ```
 
 Keep `test_homepage_splits_introduction_and_join_us_articles`; it still verifies the high-level content split and article detail pages.
@@ -578,9 +565,12 @@ Add this method near the other homepage CSS tests:
             r"\.homepage-preview[^{}]*:hover[^{}]*\{[^}]*transform:",
         )
         self.assertNotIn("#section-collection.editorial-entry:first-child", css)
+
+        home_styles = (REPO_ROOT / "assets/scss/pages/_home.scss").read_text(encoding="utf-8")
+        self.assertIn(".homepage-preview__eyebrow", home_styles)
 ```
 
-The last negative assertion uses whitespace-normalized CSS and prevents the dead generic-home selector from returning.
+The negative assertions use whitespace-normalized CSS and prevent the dead generic-home selector from returning; the final source assertion ties the eyebrow token to the homepage SCSS.
 
 - [ ] **Step 2: Run the CSS contract test and verify RED**
 
@@ -761,7 +751,23 @@ Inside the existing `@media (max-width: 47.99rem)` block, after the `.home-secti
 
 Do not use `order`, absolute positioning, truncation, `max-height`, or `overflow`; DOM and visual order must remain identical.
 
-- [ ] **Step 5: Run the CSS and warm-rhythm tests and verify GREEN**
+- [ ] **Step 5: Align the warm-rhythm selector expectation**
+
+In `test_warm_editorial_rhythm_styles_compile_for_home_and_lists`, replace this tuple item:
+
+```python
+            "#section-collection .editorial-entry:first-child",
+```
+
+with:
+
+```python
+            ".homepage-preview",
+```
+
+The dead generic-home selector is gone; the new scoped selector must be asserted in its place.
+
+- [ ] **Step 6: Run the CSS and warm-rhythm tests and verify GREEN**
 
 ```bash
 python3 -m unittest \
@@ -773,7 +779,7 @@ python3 -m unittest \
 
 Expected: all three tests PASS. If Hugo minification emits `.75fr`, the supplied regex accepts it; do not weaken the test to omit the actual column contract.
 
-- [ ] **Step 6: Run accessibility and reveal regressions**
+- [ ] **Step 7: Run accessibility and reveal regressions**
 
 ```bash
 python3 -m unittest \
@@ -785,7 +791,7 @@ python3 -m unittest \
 
 Expected: all three tests PASS; no JavaScript change should be required.
 
-- [ ] **Step 7: Check SCSS and diff formatting**
+- [ ] **Step 8: Check SCSS and diff formatting**
 
 ```bash
 git diff --check
@@ -794,7 +800,7 @@ git diff -- assets/scss/pages/_home.scss tests/test_generated_site.py
 
 Expected: no whitespace errors. The SCSS diff removes the old `#section-collection` rule and adds only `.homepage-preview`-scoped rules plus the mobile block.
 
-- [ ] **Step 8: Commit the responsive presentation**
+- [ ] **Step 9: Commit the responsive presentation**
 
 ```bash
 git add assets/scss/pages/_home.scss tests/test_generated_site.py

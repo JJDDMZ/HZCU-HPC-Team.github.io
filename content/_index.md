@@ -17,7 +17,8 @@ sections:
   
   - block: collection
     content:
-      title: INTRODUCTION
+      title:
+      eyebrow: INTRODUCTION
       subtitle:
       text:
       count: 5
@@ -31,13 +32,14 @@ sections:
       order: desc
       page_type: recruitment
     design:
-      view: card
+      view: homepage-preview
       columns: '1'
     id: introduction
 
   - block: collection
     content:
-      title: JOIN US
+      title:
+      eyebrow: JOIN US
       subtitle:
       text:
       count: 5
@@ -51,7 +53,7 @@ sections:
       order: desc
       page_type: recruitment
     design:
-      view: card
+      view: homepage-preview
       columns: '1'
     id: join-us
 
