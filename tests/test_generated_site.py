@@ -881,6 +881,17 @@ homepage_preview: "  "
         self.assertIn("border-left:0", mobile_content.group(1))
         self.assertIn("padding-left:0", mobile_content.group(1))
 
+        text_only = re.search(r"\.homepage-preview--text-only\{([^}]*)\}", css)
+        self.assertIsNotNone(text_only, "homepage preview text-only layout rule missing")
+        self.assertIn("grid-template-columns:minmax(0,48rem)", text_only.group(1))
+
+        mobile_text_only = re.search(
+            r"@media\(max-width:47\.99rem\)\{(?:[^{}]*\{[^}]*\})*?\.homepage-preview--text-only\{([^}]*)\}",
+            css,
+        )
+        self.assertIsNotNone(mobile_text_only, "homepage preview mobile text-only layout rule missing")
+        self.assertIn("grid-template-columns:1fr", mobile_text_only.group(1))
+
         self.assertNotRegex(
             css,
             r"\.homepage-preview[^{}]*:hover[^{}]*\{[^}]*transform:",
