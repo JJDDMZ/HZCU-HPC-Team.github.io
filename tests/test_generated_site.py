@@ -844,6 +844,52 @@ homepage_preview: "  "
         contact = (self.output / "contact/index.html").read_text(encoding="utf-8")
         self.assertIn('id="section-contact"', contact)
 
+    def test_homepage_preview_split_layout_css_contract(self):
+        css = "".join(self.compiled_css().split())
+
+        layout = re.search(r"\.homepage-preview\{([^}]*)\}", css)
+        self.assertIsNotNone(layout, "homepage preview layout rule missing")
+        self.assertIn("display:grid", layout.group(1))
+        self.assertRegex(
+            layout.group(1),
+            r"grid-template-columns:minmax\(0,0?\.75fr\)minmax\(0,1\.25fr\)",
+        )
+        self.assertIn("border-top:3pxsolidvar(--color-clay)", layout.group(1))
+
+        content = re.search(r"\.homepage-preview__content\{([^}]*)\}", css)
+        self.assertIsNotNone(content, "homepage preview content rule missing")
+        self.assertIn("border-left:1pxsolidvar(--color-line)", content.group(1))
+        self.assertRegex(content.group(1), r"padding-left:clamp\(")
+
+        read_link = re.search(r"\.homepage-preview__read\{([^}]*)\}", css)
+        self.assertIsNotNone(read_link, "homepage preview read-link rule missing")
+        self.assertIn("min-height:44px", read_link.group(1))
+
+        mobile = re.search(
+            r"@media\(max-width:47\.99rem\)\{(?:[^{}]*\{[^}]*\})*?\.homepage-preview\{([^}]*)\}",
+            css,
+        )
+        self.assertIsNotNone(mobile, "homepage preview mobile layout rule missing")
+        self.assertIn("grid-template-columns:1fr", mobile.group(1))
+
+        mobile_content = re.search(
+            r"@media\(max-width:47\.99rem\)\{(?:[^{}]*\{[^}]*\})*?\.homepage-preview__content\{([^}]*)\}",
+            css,
+        )
+        self.assertIsNotNone(mobile_content, "homepage preview mobile content rule missing")
+        self.assertIn("border-top:1pxsolidvar(--color-line)", mobile_content.group(1))
+        self.assertIn("border-left:0", mobile_content.group(1))
+        self.assertIn("padding-left:0", mobile_content.group(1))
+
+        self.assertNotRegex(
+            css,
+            r"\.homepage-preview[^{}]*:hover[^{}]*\{[^}]*transform:",
+        )
+        self.assertNotIn("#section-collection.editorial-entry:first-child", css)
+
+        home_styles = (REPO_ROOT / "assets/scss/pages/_home.scss").read_text(encoding="utf-8")
+        self.assertIn(".homepage-preview__eyebrow", home_styles)
+
     def test_editorial_header_background_differs_from_page_background(self):
         tokens = (REPO_ROOT / "assets/scss/abstracts/_tokens.scss").read_text(encoding="utf-8")
         self.assertIn("--color-clay-light: #cf7a5c", tokens)
@@ -1162,7 +1208,7 @@ homepage_preview: "  "
         for selector in (
             ".home-section:not(:first-of-type)",
             ".home-section .section-heading h2",
-            "#section-collection .editorial-entry:first-child",
+            ".homepage-preview",
             ".home-section .cta-group",
             ".wg-contact .form-control",
             ".editorial-index__intro",
