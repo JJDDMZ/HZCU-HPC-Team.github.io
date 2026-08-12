@@ -1,9 +1,16 @@
-// Make page header alignment consistent with widget page header alignment
-.universal-wrapper h1 {
-  text-align: center;
-}
+@import "abstracts/tokens";
+@import "abstracts/mixins";
 
-// Center the CTA shortcode button
-.cta-group {
-  justify-content: center;
-}
+@import "base/foundation";
+@import "base/typography";
+@import "base/accessibility";
+
+@import "components/navigation";
+@import "components/footer";
+@import "components/entries";
+@import "components/people";
+@import "components/controls";
+
+@import "pages/home";
+@import "pages/list";
+@import "pages/article";

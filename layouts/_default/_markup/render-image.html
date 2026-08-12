@@ -1,0 +1,40 @@
+{{- $destination := .Destination -}}
+{{- $alt := .Text | default .Title | plainify -}}
+{{- $caption := .Title | plainify -}}
+{{- $image := false -}}
+{{- $isRemote := hasPrefix $destination "http://" | or (hasPrefix $destination "https://") -}}
+{{- if not $isRemote -}}
+  {{- $image = .Page.Resources.GetMatch $destination -}}
+  {{- if not $image -}}
+    {{- $image = .Page.Resources.GetMatch (strings.TrimPrefix "./" $destination) -}}
+  {{- end -}}
+  {{- if not $image -}}
+    {{- $image = .Page.Resources.GetMatch (path.Base $destination) -}}
+  {{- end -}}
+{{- end -}}
+<figure class="article-figure">
+  {{- if $image -}}
+    {{- $subtype := $image.MediaType.SubType -}}
+    {{- if eq $subtype "svg" -}}
+      <img src="{{ $image.RelPermalink }}" alt="{{ $alt }}"{{ if not $alt }} aria-hidden="true"{{ end }} loading="lazy" data-zoomable>
+    {{- else if eq $subtype "gif" -}}
+      <img src="{{ $image.RelPermalink }}" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="{{ $alt }}"{{ if not $alt }} aria-hidden="true"{{ end }} loading="lazy" data-zoomable>
+    {{- else -}}
+      {{- $widths := slice 480 768 1200 -}}
+      {{- $sources := slice -}}
+      {{- range $widths -}}
+        {{- if and (lt . $image.Width) (lt . 1200) -}}
+          {{- $variant := $image.Resize (printf "%dx webp" .) -}}
+          {{- $sources = $sources | append (printf "%s %dw" $variant.RelPermalink $variant.Width) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- $original := $image.Process "webp" -}}
+      {{- if gt $image.Width 1200 }}{{ $original = $image.Resize "1200x webp" }}{{ end -}}
+      {{- $sources = $sources | append (printf "%s %dw" $original.RelPermalink $original.Width) -}}
+      <img src="{{ $original.RelPermalink }}" srcset="{{ delimit $sources ", " }}" sizes="(min-width: 72rem) 70ch, (min-width: 48rem) 80vw, 100vw" width="{{ $image.Width }}" height="{{ $image.Height }}" alt="{{ $alt }}"{{ if not $alt }} aria-hidden="true"{{ end }} loading="lazy" data-zoomable>
+    {{- end -}}
+  {{- else -}}
+    <img src="{{ $destination | safeURL }}" alt="{{ $alt }}"{{ if not $alt }} aria-hidden="true"{{ end }} loading="lazy" data-zoomable>
+  {{- end -}}
+  {{- with $caption }}<figcaption>{{ . }}</figcaption>{{ end -}}
+</figure>

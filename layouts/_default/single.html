@@ -1,0 +1,15 @@
+{{- define "main" -}}
+<article class="editorial-article">
+  {{ partial "page_header" . }}
+
+  <div class="article-container">
+    <div class="article-style">
+      {{ .Content }}
+    </div>
+
+    <div class="page_footer">
+      {{ partial "page_footer" . }}
+    </div>
+  </div>
+</article>
+{{- end -}}

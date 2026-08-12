@@ -1,0 +1,15 @@
+@mixin editorial-container($max-width: var(--content-max)) {
+  width: min(100% - (2 * var(--page-gutter)), #{$max-width});
+  margin-inline: auto;
+}
+
+@mixin focus-ring {
+  outline: 3px solid var(--color-clay);
+  outline-offset: 3px;
+}
+
+@mixin reduce-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}

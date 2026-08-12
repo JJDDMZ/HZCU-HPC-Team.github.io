@@ -1,0 +1,78 @@
+{{- $page := . -}}
+{{- $featured := partial "blox-core/functions/get_featured_image.html" $page -}}
+{{- $title := $page.Title -}}
+{{- if and (not $title) $page.IsNode -}}
+  {{- if eq $page.Type "post" }}{{ $title = i18n "posts" }}{{ else if eq $page.Type "event" }}{{ $title = i18n "talks" }}{{ else if eq $page.Type "publication" }}{{ $title = i18n "publications" }}{{ end -}}
+{{- end -}}
+
+{{- if and $page.Params.banner.image (not (and $featured (not $page.Params.image.preview_only))) -}}
+  {{- with $page.Params.banner.image -}}
+  {{- $destination := . -}}
+  {{- $bannerAlt := $page.Params.banner.caption | default "" | plainify -}}
+  {{- $banner := false -}}
+  {{- if not (hasPrefix $destination "http") -}}
+    {{- $banner = $page.Resources.GetMatch $destination -}}
+    {{- if not $banner }}{{ $banner = resources.Get (path.Join "media" $destination) }}{{ end -}}
+  {{- end -}}
+  <div class="article-header">
+    {{- if $banner -}}
+      {{- $subtype := $banner.MediaType.SubType -}}
+      {{- if eq $subtype "svg" -}}
+        <img src="{{ $banner.RelPermalink }}" class="article-banner" alt="{{ $bannerAlt }}"{{ if not $bannerAlt }} aria-hidden="true"{{ end }}>
+      {{- else if eq $subtype "gif" -}}
+        <img src="{{ $banner.RelPermalink }}" width="{{ $banner.Width }}" height="{{ $banner.Height }}" class="article-banner" alt="{{ $bannerAlt }}"{{ if not $bannerAlt }} aria-hidden="true"{{ end }}>
+      {{- else -}}
+        {{- $sources := slice -}}
+        {{- range slice 768 1200 1600 -}}
+          {{- if and (lt . $banner.Width) (lt . 1600) }}{{ $variant := $banner.Resize (printf "%dx webp" .) }}{{ $sources = $sources | append (printf "%s %dw" $variant.RelPermalink $variant.Width) }}{{ end -}}
+        {{- end -}}
+        {{- $original := $banner.Process "webp" -}}
+        {{- if gt $banner.Width 1600 }}{{ $original = $banner.Resize "1600x webp" }}{{ end -}}
+        {{- $sources = $sources | append (printf "%s %dw" $original.RelPermalink $original.Width) -}}
+        <img src="{{ $original.RelPermalink }}" srcset="{{ delimit $sources ", " }}" sizes="100vw" width="{{ $banner.Width }}" height="{{ $banner.Height }}" class="article-banner" alt="{{ $bannerAlt }}"{{ if not $bannerAlt }} aria-hidden="true"{{ end }}>
+      {{- end -}}
+    {{- else -}}
+      <img src="{{ $destination | safeURL }}" class="article-banner" alt="{{ $bannerAlt }}"{{ if not $bannerAlt }} aria-hidden="true"{{ end }}>
+    {{- end -}}
+    {{- with $page.Params.banner.caption }}<span class="article-header-caption">{{ . | markdownify | emojify }}</span>{{ end -}}
+  </div>
+  {{- end -}}
+{{- end -}}
+
+<div class="page_header article-container pt-3">
+  <h1>{{ $title }}</h1>
+  {{- with $page.Params.subtitle }}<p class="page-subtitle">{{ . | markdownify | emojify }}</p>{{ end -}}
+  {{- if not $page.IsNode }}{{ partial "page_metadata" (dict "page" $page "is_list" 0 "share" true) }}{{ partial "page_links_div.html" $page }}{{ end -}}
+</div>
+
+{{- if and $featured (not $page.Params.image.preview_only) -}}
+  {{- $subtype := $featured.MediaType.SubType -}}
+  {{- $placement := $page.Params.image.placement | default 1 -}}
+  {{- $imageContainer := "article-container" -}}
+  {{- if eq $placement 2 }}{{ $imageContainer = "container" }}{{ else if eq $placement 3 }}{{ $imageContainer = "container-fluid" }}{{ end -}}
+  {{- $featuredMaxWidth := 720 -}}
+  {{- if eq $placement 2 }}{{ $featuredMaxWidth = 1200 }}{{ else if eq $placement 3 }}{{ $featuredMaxWidth = 2560 }}{{ end -}}
+  {{- $featuredSizes := printf "(min-width: %dpx) %dpx, 100vw" $featuredMaxWidth $featuredMaxWidth -}}
+  {{- $featuredWidths := slice 480 720 -}}
+  {{- if eq $placement 2 }}{{ $featuredWidths = slice 480 768 1200 }}{{ else if eq $placement 3 }}{{ $featuredWidths = slice 768 1200 1600 2560 }}{{ end -}}
+  {{- $featuredAlt := $page.Params.image.alt_text | default ($page.Params.image.caption | plainify) | default $title | plainify -}}
+  {{- $featuredStyleWidth := $featuredMaxWidth -}}
+  {{- if ne $subtype "svg" -}}
+    {{- if lt $featured.Width $featuredMaxWidth }}{{ $featuredStyleWidth = $featured.Width }}{{ end -}}
+  {{- end -}}
+  <div class="article-header {{ $imageContainer }} featured-image-wrapper" style="max-width: {{ $featuredStyleWidth }}px;">
+    {{- if or (eq $subtype "svg") (eq $subtype "gif") -}}
+      <img src="{{ $featured.RelPermalink }}" alt="{{ $featuredAlt }}" class="featured-image">
+    {{- else -}}
+      {{- $sources := slice -}}
+      {{- range $featuredWidths -}}
+        {{- if and (lt . $featured.Width) (lt . $featuredMaxWidth) }}{{ $variant := $featured.Resize (printf "%dx webp" .) }}{{ $sources = $sources | append (printf "%s %dw" $variant.RelPermalink $variant.Width) }}{{ end -}}
+      {{- end -}}
+      {{- $original := $featured.Process "webp" -}}
+      {{- if gt $featured.Width $featuredMaxWidth }}{{ $original = $featured.Resize (printf "%dx webp" $featuredMaxWidth) }}{{ end -}}
+      {{- $sources = $sources | append (printf "%s %dw" $original.RelPermalink $original.Width) -}}
+      <img src="{{ $original.RelPermalink }}" srcset="{{ delimit $sources ", " }}" sizes="{{ $featuredSizes }}" width="{{ $featured.Width }}" height="{{ $featured.Height }}" alt="{{ $featuredAlt }}" class="featured-image">
+    {{- end -}}
+    {{- with $page.Params.image.caption }}<span class="article-header-caption">{{ . | markdownify | emojify }}</span>{{ end -}}
+  </div>
+{{- end -}}

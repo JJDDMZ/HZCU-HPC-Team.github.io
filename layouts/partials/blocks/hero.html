@@ -1,0 +1,34 @@
+{{/* Editorial homepage hero. */}}
+{{ $page := .wcPage }}
+{{ $block := .wcBlock }}
+{{ $title := $block.content.title | default $block.Title }}
+{{ $image := resources.Get (path.Join "media" $block.content.image.filename) }}
+
+<div class="editorial-hero" aria-labelledby="{{ .wcIdentifier }}-title">
+  <div class="editorial-hero__copy" data-reveal>
+    {{ with $title }}
+      <h1 id="{{ $.wcIdentifier }}-title">{{ . | markdownify }}</h1>
+    {{ end }}
+    {{ with $block.content.text }}
+      <div class="editorial-hero__text">{{ . | $page.RenderString | emojify }}</div>
+    {{ end }}
+  </div>
+  {{ with $image }}
+    {{ if or (eq .MediaType.SubType "svg") (eq .MediaType.SubType "gif") }}
+      <div class="editorial-hero__media" data-reveal>
+        <img src="{{ .RelPermalink }}" alt="{{ $title | plainify }}">
+      </div>
+    {{ else }}
+      {{ $widths := slice 1600 1200 800 400 }}
+      {{ $srcset := slice }}
+      {{ range $widths }}
+        {{ if le . $image.Width }}{{ $variant := $image.Resize (printf "%dx webp" .) }}{{ $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink $variant.Width) }}{{ end }}
+      {{ end }}
+      {{ $fallback := $image.Process "webp" }}
+      {{ $srcset = $srcset | append (printf "%s %dw" $fallback.RelPermalink $fallback.Width) }}
+      <div class="editorial-hero__media" data-reveal>
+        <img src="{{ $fallback.RelPermalink }}" srcset="{{ delimit $srcset ", " }}" sizes="(min-width: 60rem) 48vw, 100vw" width="{{ $fallback.Width }}" height="{{ $fallback.Height }}" alt="{{ $title | plainify }}">
+      </div>
+    {{ end }}
+  {{ end }}
+</div>
