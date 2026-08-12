@@ -343,17 +343,23 @@ class GeneratedSiteTests(unittest.TestCase):
             with self.subTest(expected=expected):
                 self.assertIn(expected, self.homepage)
 
-    def test_homepage_hero_is_editorial_split(self):
+    def test_homepage_hero_is_spotlight(self):
         for expected in (
-            'class="editorial-hero"',
-            'class="editorial-hero__copy"',
-            'class="editorial-hero__media"',
-            'srcset="',
-            'sizes="',
-            'banner',
+            'class="hero-spotlight"',
+            "data-spotlight-reveal",
+            "data-spotlight-canvas",
+            "hero-zoom",
+            "Beyond the clock",
+            "HZCU HPC Team",
+            "Join Us",
+            'href="/recruitment/join-us/"',
+            "fonts.googleapis.com",
+            "hf_20260609_195923",
+            "hf_20260609_201152",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, self.homepage)
+        self.assertEqual(self.homepage.count('id="section-hero-spotlight"'), 1)
 
     def test_svg_and_animated_gif_hero_assets_build_with_original_paths(self):
         for extension, fixture_data in (("svg", SVG_HERO), ("gif", ANIMATED_GIF_HERO)):
@@ -370,7 +376,9 @@ class GeneratedSiteTests(unittest.TestCase):
                 (fixture / "assets/media" / image_name).write_bytes(fixture_data)
                 homepage = fixture / "content/_index.md"
                 homepage.write_text(
-                    homepage.read_text(encoding="utf-8").replace("filename: banner.jpg", f"filename: {image_name}", 1),
+                    homepage.read_text(encoding="utf-8").replace(
+                        "        base:", f"        filename: {image_name}\n        base:", 1
+                    ),
                     encoding="utf-8",
                 )
                 destination = Path(tempfile.mkdtemp())
@@ -500,10 +508,8 @@ class GeneratedSiteTests(unittest.TestCase):
 
     def test_small_raster_candidates_do_not_upscale(self):
         homepage = (self.fixture_output / "index.html").read_text(encoding="utf-8")
-        hero = homepage.split('class="editorial-hero__media"', 1)[1].split("</div>", 1)[0]
-        hero_widths = [int(width) for width in re.findall(r"\s(\d+)w", hero)]
-        self.assertTrue(hero_widths)
-        self.assertTrue(all(width <= 512 for width in hero_widths))
+        hero = homepage.split('class="hero-spotlight"', 1)[1].split("</section>", 1)[0]
+        self.assertNotIn("srcset=", hero)
         listing = (self.fixture_output / "post/index.html").read_text(encoding="utf-8")
         entry = listing.split("Editorial small", 1)[1].split("</article>", 1)[0]
         widths = [int(width) for width in re.findall(r"\s(\d+)w", entry)]
@@ -894,8 +900,8 @@ class GeneratedSiteTests(unittest.TestCase):
     def test_task8_style_selectors_match_generated_home_contact_and_publication_dom(self):
         home_sections = re.findall(r'<section[^>]*class="[^"]*home-section[^"]*"[^>]*>', self.homepage)
         self.assertGreaterEqual(len(home_sections), 3)
-        self.assertIn("wg-hero", home_sections[0])
-        self.assertTrue(all("wg-hero" not in section for section in home_sections[1:]))
+        self.assertIn("wg-hero-spotlight", home_sections[0])
+        self.assertTrue(all("wg-hero-spotlight" not in section for section in home_sections[1:]))
 
         collection = self.homepage.split('id="introduction"', 1)[1].split("</section>", 1)[0]
         self.assertRegex(collection, r'class="section-heading[^"]*"[\s\S]*?<h2')
@@ -923,6 +929,21 @@ class GeneratedSiteTests(unittest.TestCase):
         publication_container = publication.split('id="container-publications"', 1)[1].split("</div>\n\n    </div>", 1)[0]
         wrappers = re.findall(r'<div class="grid-sizer[^"]*isotope-item[^"]*">[\s\S]*?<div class="pub-list-item', publication_container)
         self.assertEqual(len(wrappers), 3)
+
+    def test_spotlight_hero_css_contract(self):
+        css = "".join(self.compiled_css().split())
+        self.assertRegex(css, r"\.hero-spotlight\{[^}]*height:100dvh")
+        self.assertRegex(css, r"\.hero-spotlight__reveal\{[^}]*opacity:0")
+        self.assertRegex(css, r"\.editorial-header\.is-over-hero\{[^}]*background")
+        self.assertIn("@media(prefers-reduced-motion:reduce){", css)
+
+    def test_spotlight_hero_js_source_contract(self):
+        spotlight = (REPO_ROOT / "assets/js/spotlight.js").read_text(encoding="utf-8")
+        for expected in ("SPOTLIGHT_R = 260", "maskImage", "prefers-reduced-motion", "pointer: fine", "toDataURL"):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, spotlight)
+        params = (REPO_ROOT / "config/_default/params.yaml").read_text(encoding="utf-8")
+        self.assertIn("spotlight", params)
 
     def test_publication_optional_intro_uses_scoped_plain_content_styles(self):
         page = (self.fixture_output / "publication/index.html").read_text(encoding="utf-8")
