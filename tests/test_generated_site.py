@@ -287,7 +287,7 @@ homepage_preview: "  "
                 self.assertEqual(len(headings), 1, f"{route} should have one h1")
 
         homepage = self.inspect_generated_page("/")
-        self.assertGreaterEqual(len(homepage.find_all_with_class("h2", "mb-0")), 1)
+        self.assertGreaterEqual(len(homepage.find_all_with_class("h2", "homepage-preview__eyebrow")), 1)
 
     def test_key_route_images_have_alternative_text(self):
         for route in REQUIRED_ROUTES + (
