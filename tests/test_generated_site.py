@@ -613,6 +613,20 @@ class GeneratedSiteTests(unittest.TestCase):
         self.assertGreaterEqual(self.homepage.count('class="cta-group"'), 1)
         self.assertIn('class="cta-group" data-reveal', self.homepage)
 
+    def test_homepage_introduction_join_us_entries_split_title_left_preview_right(self):
+        """INTRODUCTION/JOIN US cards split: metadata+title+Read top-left, preview fills the right column."""
+        css = "".join(self.compiled_css().split())
+        for selector in ("#introduction.editorial-entry.text-only", "#join-us.editorial-entry.text-only"):
+            with self.subTest(selector=selector):
+                block = re.search(re.escape(selector) + r"[^{]*\{([^}]*)\}", css)
+                self.assertIsNotNone(block, f"split-layout rule missing from compiled CSS: {selector}")
+                self.assertIn("grid-template-columns:", block.group(1))
+                self.assertIn("grid-template-areas:", block.group(1))
+        mobile = re.search(r"@media\(max-width:47\.99rem\)\{[^@]*#introduction\.editorial-entry\.text-only[^{]*\{([^}]*)\}", css)
+        self.assertIsNotNone(mobile, "mobile reset rule missing for #introduction split layout")
+        self.assertIn("grid-template-columns:1fr", mobile.group(1))
+        self.assertIn("grid-template-areas:", mobile.group(1))
+
     def test_homepage_splits_introduction_and_join_us_articles(self):
         for expected in ("INTRODUCTION", "JOIN US"):
             with self.subTest(expected=expected):
