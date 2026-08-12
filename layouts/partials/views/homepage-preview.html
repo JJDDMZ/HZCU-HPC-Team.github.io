@@ -11,17 +11,21 @@
 {{- $preview := "" -}}
 {{- with $item.Params.homepage_preview -}}
   {{- $preview = $item.RenderString . -}}
-  {{- $preview = replaceRE `<h3([^>]*)>` `<h4$1>` $preview -}}
-  {{- $preview = replaceRE `</h3>` `</h4>` $preview -}}
-{{- else with $item.Params.summary -}}
-  {{- $summary := trim (htmlUnescape (plainify .)) " \t\r\n" -}}
-  {{- with $summary -}}
-    {{- $preview = printf "<p>%s</p>" (. | transform.HTMLEscape) -}}
-  {{- end -}}
-{{- else with $item.Summary -}}
-  {{- $summary := trim (htmlUnescape (plainify .)) " \t\r\n" -}}
-  {{- with $summary -}}
-    {{- $preview = printf "<p>%s</p>" (. | transform.HTMLEscape) -}}
+  {{- $preview = replaceRE `<h[1-3]([^>]*)>` `<h4$1>` $preview -}}
+  {{- $preview = replaceRE `</h[1-3]>` `</h4>` $preview -}}
+  {{- $preview = trim $preview " \t\r\n" -}}
+{{- end -}}
+{{- if not $preview -}}
+  {{- with $item.Params.summary -}}
+    {{- $summary := trim (htmlUnescape (plainify .)) " \t\r\n" -}}
+    {{- with $summary -}}
+      {{- $preview = printf "<p>%s</p>" (. | transform.HTMLEscape) -}}
+    {{- end -}}
+  {{- else with $item.Summary -}}
+    {{- $summary := trim (htmlUnescape (plainify .)) " \t\r\n" -}}
+    {{- with $summary -}}
+      {{- $preview = printf "<p>%s</p>" (. | transform.HTMLEscape) -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 

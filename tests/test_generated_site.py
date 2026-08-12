@@ -100,7 +100,7 @@ title: Fixture homepage fallback preview
 date: 2025-09-03
 categories:
   - introduction
-summary: Fixture homepage fallback summary.
+summary: 'Fixture homepage fallback summary. 5 < 10 && <script>alert(1)</script> &amp; ok'
 ---
 """,
             encoding="utf-8",
@@ -113,7 +113,22 @@ title: Fixture homepage empty preview
 date: 2025-09-02
 categories:
   - introduction
+summary: "  "
 ---
+""",
+            encoding="utf-8",
+        )
+        blank_preview_dir = fixture / "content/recruitment/homepage-preview-blank"
+        blank_preview_dir.mkdir(parents=True)
+        (blank_preview_dir / "index.md").write_text(
+            """---
+title: Fixture homepage blank preview
+date: 2025-08-31
+categories:
+  - introduction
+homepage_preview: "  "
+---
+这是用于自动摘要的固定装置正文。
 """,
             encoding="utf-8",
         )
@@ -636,7 +651,7 @@ categories:
             section,
         )
 
-        self.assertEqual(len(articles), 3)
+        self.assertEqual(len(articles), 4)
         self.assertEqual(section.count('class="homepage-preview__eyebrow"'), 1)
         self.assertIn("homepage-preview--first", articles[0].split(">", 1)[0])
 
@@ -644,6 +659,9 @@ categories:
             article for article in articles if "Fixture homepage fallback preview" in article
         )
         self.assertIn("Fixture homepage fallback summary.", fallback)
+        self.assertIn("&lt;", fallback)
+        self.assertIn("&amp;&amp;", fallback)
+        self.assertNotIn("<script>", fallback)
         self.assertIn('class="homepage-preview__content article-style"', fallback)
 
         empty = next(
@@ -651,6 +669,21 @@ categories:
         )
         self.assertIn("homepage-preview--text-only", empty.split(">", 1)[0])
         self.assertNotIn("homepage-preview__content", empty)
+
+        blank = next(
+            article for article in articles if "Fixture homepage blank preview" in article
+        )
+        self.assertIn('class="homepage-preview__content article-style"', blank)
+        self.assertNotIn("homepage-preview--text-only", blank.split(">", 1)[0])
+        self.assertIn("这是用于自动摘要的固定装置正文。", blank)
+
+        content_divs = re.findall(
+            r'<div class="homepage-preview__content article-style">[\s\S]*?</div>',
+            section,
+        )
+        self.assertTrue(content_divs)
+        for content_div in content_divs:
+            self.assertNotRegex(content_div, r"</h[12]>")
 
         external = next(article for article in articles if "浙大城市学院超算队介绍" in article)
         external_links = re.findall(
