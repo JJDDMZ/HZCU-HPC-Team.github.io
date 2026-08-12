@@ -611,6 +611,7 @@ class GeneratedSiteTests(unittest.TestCase):
             with self.subTest(expected=expected):
                 self.assertIn(expected, self.homepage)
         self.assertGreaterEqual(self.homepage.count('class="cta-group"'), 1)
+        self.assertIn('class="cta-group" data-reveal', self.homepage)
 
     def test_homepage_splits_introduction_and_join_us_articles(self):
         for expected in ("INTRODUCTION", "JOIN US"):
