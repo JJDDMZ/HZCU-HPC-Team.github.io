@@ -93,12 +93,12 @@
 
   .editorial-entry__metadata { grid-area: meta; }
   .editorial-entry__title { grid-area: title; }
-  .editorial-entry__summary { grid-area: summary; margin-top: 0; }
+  .editorial-entry__summary { grid-area: summary; margin-top: 0; max-width: none; }
   .editorial-entry__read { grid-area: read; }
   .editorial-entry__attachments { grid-area: attachments; margin-top: 0; }
 }
 
-@media (max-width: 47.99rem) {
+@media (max-width: 35.99rem) {
   .editorial-entry {
     grid-template-columns: 1fr;
 

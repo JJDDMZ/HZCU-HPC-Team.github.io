@@ -622,7 +622,7 @@ class GeneratedSiteTests(unittest.TestCase):
                 self.assertIsNotNone(block, f"split-layout rule missing from compiled CSS: {selector}")
                 self.assertIn("grid-template-columns:", block.group(1))
                 self.assertIn("grid-template-areas:", block.group(1))
-        mobile = re.search(r"@media\(max-width:47\.99rem\)\{[^@]*#introduction\.editorial-entry\.text-only[^{]*\{([^}]*)\}", css)
+        mobile = re.search(r"@media\(max-width:35\.99rem\)\{[^@]*#introduction\.editorial-entry\.text-only[^{]*\{([^}]*)\}", css)
         self.assertIsNotNone(mobile, "mobile reset rule missing for #introduction split layout")
         self.assertIn("grid-template-columns:1fr", mobile.group(1))
         self.assertIn("grid-template-areas:", mobile.group(1))
