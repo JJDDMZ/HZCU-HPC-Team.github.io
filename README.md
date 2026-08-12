@@ -1,48 +1,72 @@
-# [Hugo Research Group Theme](https://github.com/wowchemy/starter-hugo-research-group)
+# HZCU HPC Team
 
-[![Screenshot](preview.png)](https://hugoblox.com/hugo-themes/)
+> 浙大城市学院高性能计算团队官方网站
 
-The **Research Group Template** empowers your research group to easily create a beautiful website with a stunning homepage, news, academic publications, events, team profiles, and a contact form.
+[https://hpc.hzcu.edu.cn/](https://hpc.hzcu.edu.cn/)
 
-️**Trusted by 250,000+ researchers, educators, and students.** Highly customizable via the integrated **no-code, widget-based Wowchemy page builder**, making every site truly personalized ⭐⭐⭐⭐⭐
+## 关于我们
 
-[![Get Started](https://img.shields.io/badge/-Get%20started-ff4655?style=for-the-badge)](https://hugoblox.com/hugo-themes/)
-[![Discord](https://img.shields.io/discord/722225264733716590?style=for-the-badge)](https://discord.com/channels/722225264733716590/742892432458252370/742895548159492138)  
-[![Twitter Follow](https://img.shields.io/twitter/follow/GetResearchDev?label=Follow%20on%20Twitter)](https://twitter.com/wowchemy)
+浙大城市学院高性能计算（HPC）团队是一个充满活力的学生团队，致力于高性能计算领域。团队成员来自不同的技术背景，在算法优化、程序设计、系统架构等方向不断探索，通过参与 ASC 等竞赛和研究项目提升技术水平，培养具备高性能计算技能的专业人才。
 
-Easily write technical content with plain text Markdown, LaTeX math, diagrams, RMarkdown, or Jupyter, and import publications from BibTeX.
+网站内容涵盖团队介绍、竞赛成果、日常记录、招新信息等。
 
-[Check out the latest demo](https://research-group.netlify.app/) of what you'll get in less than 60 seconds, or [view the showcase](https://hugoblox.com/creators/).
+## 技术栈
 
-The integrated [**Wowchemy**](https://hugoblox.com) website builder and CMS makes it easy to create a beautiful website for free. Edit your site in the CMS (or your favorite editor), generate it with [Hugo](https://github.com/gohugoio/hugo), and deploy with GitHub or Netlify. Customize anything on your site with widgets, light/dark themes, and language packs.
+- **静态站点生成器：** [Hugo](https://gohugo.io/) Extended 0.135.0
+- **主题：** [Hugo Blox](https://hugoblox.com/)（原 Wowchemy），通过 Hugo Modules 加载
+- **样式：** 模块化 SCSS，自定义「暖色调编辑风」设计系统
+- **脚本：** 渐进增强（吸顶导航栏、滚动入场动画）
+- **部署：** GitHub Pages（主） + Netlify（备）
 
-- 👉 [**Get Started**](https://hugoblox.com/hugo-themes/)
-- 📚 [View the **documentation**](https://docs.hugoblox.com/)
-- 💬 [Chat with the **Wowchemy research community**](https://discord.gg/z8wNYzb) or [**Hugo community**](https://discourse.gohugo.io)
-- ⬇️ **Automatically import citations from BibTeX** with the [Hugo Academic CLI](https://github.com/GetRD/academic-file-converter)
-- 🐦 Share your new site with the community: [@wowchemy](https://twitter.com/wowchemy) [@GeorgeCushen](https://twitter.com/GeorgeCushen) [#MadeWithWowchemy](https://twitter.com/search?q=%23MadeWithWowchemy&src=typed_query)
-- 🗳 [Take the survey and help us improve #OpenSource](https://forms.gle/NioD9VhUg7PNmdCAA)
-- 🚀 [Contribute improvements](https://github.com/HugoBlox/hugo-blox-builder/blob/main/CONTRIBUTING.md) or [suggest improvements](https://github.com/HugoBlox/hugo-blox-builder/issues)
-- ⬆️ **Updating?** View the [Update Guide](https://docs.hugoblox.com/hugo-tutorials/update/) and [Release Notes](https://github.com/HugoBlox/hugo-blox-builder/releases)
+## 本地开发
 
-## We ask you, humbly, to support this open source movement
+### 环境要求
 
-Today we ask you to defend the open source independence of the Wowchemy website builder and themes 🐧
+- Hugo Extended 0.135.0
+- Go 工具链（用于 Hugo 模块拉取）
 
-We're an open source movement that depends on your support to stay online and thriving, but 99.9% of our creators don't give; they simply look the other way.
+### 启动开发服务器
 
-### [❤️ Click here to become a GitHub Sponsor, unlocking awesome perks such as _exclusive academic templates and widgets_](https://github.com/sponsors/gcushen)
+```bash
+hugo server --buildDrafts --buildFuture --bind 127.0.0.1 --port 1313
+```
 
-## Demo credits
+### 生产构建
 
-Please replace the demo images with your own.
+```bash
+# GitHub Pages
+HUGO_ENVIRONMENT=production hugo --minify --baseURL "https://hpc.hzcu.edu.cn/"
 
-- [Female scientist](https://unsplash.com/photos/uVnRa6mOLOM)
-- [2 Coders](https://unsplash.com/photos/kwzWjTnDPLk)
-- [Cafe](https://unsplash.com/photos/RnDGGnMEOao)
-- Blog posts
-  - https://unsplash.com/photos/AndE50aaHn4
-  - https://unsplash.com/photos/OYzbqk2y26c
-- Avatars
-  - https://unsplash.com/photos/5yENNRbbat4
-  - https://unsplash.com/photos/WNoLnJo7tS8
+# Netlify
+hugo --gc --minify -b "https://hpc.hzcu.edu.cn/"
+```
+
+### 测试
+
+```bash
+./scripts/test-site.sh
+```
+
+## 项目结构
+
+```
+content/           # 网站内容（Markdown + YAML 前置元数据）
+  authors/         # 团队成员档案
+  post/            # 新闻与公告
+  daily/           # 团队日常记录
+  recruitment/     # 招新页面
+  memory/          # 团队回忆录
+  accomplishments/ # 获奖成就
+  publication/     # 学术发表
+assets/            # SCSS、JS、图片等静态资源
+layouts/           # Hugo 模板覆盖
+config/_default/   # Hugo 配置文件
+```
+
+## 部署
+
+推送到 `main` 分支后，GitHub Actions（`.github/workflows/publish.yaml`）自动构建并部署到 GitHub Pages。Netlify 部署配置见 `netlify.toml`。
+
+## 致谢
+
+本项目基于开源项目 [Hugo Blox](https://hugoblox.com/)（Wowchemy）的 Research Group 模板构建，并在此基础上定制了「暖色调编辑风」视觉主题，感谢开源社区的支持。
