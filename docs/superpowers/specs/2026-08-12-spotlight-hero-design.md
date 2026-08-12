@@ -9,6 +9,7 @@
 The team received a detailed React/Vite/Tailwind prompt for a geology-brand hero ("Lithos") whose signature mechanic is a canvas-based radial-gradient mask that reveals a second image inside a soft circle trailing the cursor. The task: port that effect into this repository — a Hugo static site with no JS package manager, no Tailwind, no React — while staying true to the site's own design system (warm editorial: paper/ink/clay palette, serif display type, progressive enhancement, reduced-motion contract).
 
 User decisions (confirmed):
+
 - **Content:** HPC-team wording, not the Lithos geology copy.
 - **Images:** use the two image URLs from the prompt exactly.
 - **Approach:** Option A — standalone spotlight hero block + site-wide header dark-state adaptation.
@@ -25,7 +26,7 @@ User decisions (confirmed):
 ## Copy
 
 | Prompt original | HPC version |
-|---|---|
+| --- | --- |
 | Line 1 (italic serif): "Layers hold" | "Beyond the clock" |
 | Line 2 (sans, tight tracking): "tales of time" | "HZCU HPC Team" |
 | Bottom-left paragraph | 「浙大城市学院高性能计算（HPC）团队隶属于学校超算中心，专注性能评估与优化，在 ASC、IPCC、CPC 等国际竞赛中屡获佳绩。」 |
@@ -135,7 +136,7 @@ Validation: `./scripts/test-site.sh` full suite + `hugo --gc --minify` productio
 ## File Summary
 
 | File | Action |
-|---|---|
+| --- | --- |
 | `content/_index.md` | Edit — replace hero block with `hero-spotlight` |
 | `layouts/partials/blocks/hero-spotlight.html` | New |
 | `assets/scss/pages/_spotlight-hero.scss` | New |
